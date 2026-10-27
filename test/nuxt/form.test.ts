@@ -77,6 +77,22 @@ describe("UForm", () => {
     expect(onSubmitted).toHaveBeenCalledTimes(3)
   })
 
+  it("an async @submit handler keeps the form loading: the input is disabled until it resolves", async () => {
+    let resolve!: () => void
+    const onSubmitted = vi.fn(() => new Promise<void>((r) => (resolve = r)))
+    const wrapper = await mountSuspended(BasicForm, { props: { initialValues: { email: "a@b.co" }, onSubmitted } })
+    const emailInput = () => wrapper.get<HTMLInputElement>('[data-testid="email-input"]').element
+    await settle()
+
+    await submit(wrapper)
+    expect(onSubmitted).toHaveBeenCalledOnce()
+    expect(emailInput().disabled).toBe(true)
+
+    resolve()
+    await settle()
+    expect(emailInput().disabled).toBe(false)
+  })
+
   it("removing a UFormField with v-if removes its name from touchedFields/blurredFields/dirtyFields", async () => {
     const wrapper = await mountSuspended(BasicForm, { props: { showNickname: true } })
     await settle()

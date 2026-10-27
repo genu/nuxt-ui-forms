@@ -1,6 +1,8 @@
 import { defineNuxtModule, addComponent, createResolver } from "@nuxt/kit"
 import { resolveAdapter } from "./adapters"
 
+export type * from "./runtime/types"
+
 export interface ModuleOptions {
   adapter: "formwerk"
 }

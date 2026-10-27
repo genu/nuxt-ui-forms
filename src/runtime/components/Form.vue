@@ -8,20 +8,16 @@
     validateOn?: ValidateOn
     disabled?: boolean
     id?: string
+    onSubmit?: (event: { data: unknown }) => void | Promise<void>
   }
 
   export interface FormSlots {
     default(props: { blurredFields: ReadonlySet<string>; touchedFields: ReadonlySet<string>; dirtyFields: ReadonlySet<string> }): any
   }
-
-  export interface FormEmits {
-    submit: [event: { data: unknown }]
-  }
 </script>
 
 <script setup lang="ts">
-  const { validateOn = "blur", disabled = false, id } = defineProps<FormProps>()
-  const emit = defineEmits<FormEmits>()
+  const { validateOn = "blur", disabled = false, id, onSubmit } = defineProps<FormProps>()
   defineSlots<FormSlots>()
 
   const form = useAdapter().useForm()
@@ -33,11 +29,11 @@
     submitAttempted: form.submitAttempted,
   })
 
-  const onSubmit = () => form.submit((data) => emit("submit", { data }))()
+  const submit = () => form.submit((data) => onSubmit?.({ data }))()
 </script>
 
 <template>
-  <NuxtUiForm :id="id ?? form.id" :validate-on="[]" :validate-on-input-delay="0" :disabled="disabled" @submit="onSubmit">
+  <NuxtUiForm :id="id ?? form.id" :validate-on="[]" :validate-on-input-delay="0" :disabled="disabled" @submit="submit">
     <slot :blurred-fields="blurredFields" :touched-fields="touchedFields" :dirty-fields="dirtyFields" />
   </NuxtUiForm>
 </template>

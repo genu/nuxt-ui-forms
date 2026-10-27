@@ -1,11 +1,11 @@
 <script lang="ts">
   import { computed, inject, onBeforeUnmount, onMounted, watch } from "vue"
   import type { FormEvent, FormFieldProps } from "@nuxt/ui"
-  import { formBusInjectionKey } from "#ui/composables/useFormField"
   import { isErrorVisible } from "../core/error-visibility"
   import { injectFormContext } from "../core/form-context"
   import { useFormRegistry } from "../core/form-registry"
   import { resolveFieldName, resolveFullName, useNameScope } from "../core/name-scope"
+  import { formBusInjectionKey } from "../core/nuxt-ui-keys"
   import { useAdapter } from "../core/use-adapter"
 
   export type FieldProps = Omit<FormFieldProps, "validateOnInputDelay" | "errorPattern" | "eagerValidation" | "error" | "name"> & {

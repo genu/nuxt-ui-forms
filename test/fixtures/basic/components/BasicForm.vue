@@ -8,10 +8,7 @@
     disabled?: boolean
     showNickname?: boolean
     initialValues?: { email?: string; nickname?: string }
-  }
-
-  interface Emits {
-    submitted: [data: unknown]
+    onSubmitted?: (data: unknown) => void | Promise<void>
   }
 
   const schema = z.object({
@@ -21,12 +18,11 @@
 </script>
 
 <script setup lang="ts">
-  const { validateOn, disabled = false, showNickname = false, initialValues } = defineProps<Props>()
-  const emit = defineEmits<Emits>()
+  const { validateOn, disabled = false, showNickname = false, initialValues, onSubmitted } = defineProps<Props>()
 
   useForm({ schema, initialValues })
 
-  const onSubmit = (event: { data: unknown }) => emit("submitted", event.data)
+  const onSubmit = (event: { data: unknown }) => onSubmitted?.(event.data)
   const join = (names: ReadonlySet<string>) => [...names].sort().join(",")
 </script>
 
