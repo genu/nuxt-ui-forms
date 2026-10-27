@@ -30,11 +30,6 @@
       "matchPackageNames": ["/^@formwerk//"]
     },
     {
-      "description": "Group VueUse packages",
-      "groupName": "vueuse",
-      "matchPackageNames": ["/^@vueuse//"]
-    },
-    {
       "description": "Automerge minor/patch devDependencies",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
