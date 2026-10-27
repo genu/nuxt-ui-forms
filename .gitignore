@@ -14,3 +14,4 @@ node_modules
 .generated
 .context
 .superpowers
+test/fixtures/**/.nuxtrc

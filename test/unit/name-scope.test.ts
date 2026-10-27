@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { defineComponent, h, ref, type Component } from "vue"
 import { mount } from "@vue/test-utils"
-import { provideNameScope, resolveFullName } from "../../src/runtime/core/name-scope"
+import { provideNameScope, resolveFieldName, resolveFullName, useNameScope } from "../../src/runtime/core/name-scope"
 
 const Consumer = defineComponent({
   setup() {
@@ -44,5 +44,25 @@ describe("name scope", () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toBe("contacts.1.email")
+  })
+
+  it("resolves against a captured scope after setup, following prefix changes", () => {
+    const prefix = ref("contacts.0")
+    let scopeGetter!: () => string
+    const Capture = defineComponent({
+      setup() {
+        scopeGetter = useNameScope()
+        return () => null
+      },
+    })
+    mount(scope(() => prefix.value, Capture))
+
+    expect(resolveFullName("email", scopeGetter)).toBe("contacts.0.email")
+    prefix.value = "contacts.1"
+    expect(resolveFullName("email", scopeGetter)).toBe("contacts.1.email")
+  })
+
+  it("resolveFieldName reads the field name from props", () => {
+    expect(resolveFieldName({ name: "email" })).toBe("email")
   })
 })

@@ -11,8 +11,8 @@ export const provideNameScope = (prefix: MaybeRefOrGetter<string>) => {
   provide(scopeKey, () => scope.value)
 }
 
-export const resolveFullName = (name: string) => {
-  const scope = inject(scopeKey, () => "")
+export const useNameScope = () => inject(scopeKey, () => "")
 
-  return joinPath(scope(), name)
-}
+export const resolveFullName = (name: string, scope = useNameScope()) => joinPath(scope(), name)
+
+export const resolveFieldName = (props: { name: string }): string => props.name
