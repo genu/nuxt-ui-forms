@@ -21,7 +21,7 @@ export default defineNuxtConfig({
 })
 ```
 
-- `@nuxt/ui` (^4) is a required peer dependency.
+- `@nuxt/ui` (^4.12.0) is a required peer dependency. Only 4.12.0 is tested.
 - `@formwerk/core` (^0.14.4) is an optional peer dependency, needed only for the `formwerk` adapter. If the selected adapter's library is missing, the module throws at setup with the install command.
 
 ## Components
@@ -61,7 +61,7 @@ Create the form with the library in the component that renders `UForm` (or any a
 </script>
 
 <script setup lang="ts">
-  const { values } = useForm({ schema })
+  useForm({ schema })
 
   const onSubmit = async ({ data }: { data: unknown }) => {
     await $fetch("/api/signup", { method: "POST", body: data })
@@ -69,7 +69,7 @@ Create the form with the library in the component that renders `UForm` (or any a
 </script>
 
 <template>
-  <UForm v-slot="{ blurredFields }" @submit="onSubmit">
+  <UForm @submit="onSubmit">
     <UFormField v-slot="{ model }" name="email" label="Email">
       <UInput v-bind="model" />
     </UFormField>
@@ -101,6 +101,8 @@ Create the form with the library in the component that renders `UForm` (or any a
 - `onSubmit` is a function prop, so `@submit="handler"` binds to it. It runs only when the library's validation passes, `data` is the validated output, and it is awaited (Nuxt UI's form loading state stays on until it resolves).
 - `disabled` disables the Nuxt UI inputs and the library fields. Formwerk leaves disabled fields out of the submitted data.
 - Default slot props: `blurredFields`, `touchedFields`, `dirtyFields` (`ReadonlySet<string>` of full field names such as `contacts.0.email`).
+- Nuxt UI's `schema`, `state` and `validate` props are not supported: validation belongs to the form library. They are not forwarded to Nuxt UI's form, and passing them logs a warning in development.
+- `UForm` does not expose Nuxt UI's template-ref API (`submit()`, `validate()`, `clear()`, `setErrors()`). Use the form library's API instead.
 
 #### `validateOn` is an error-visibility gate
 
@@ -211,6 +213,7 @@ Each row must be rendered through the `Iteration` component, which scopes the ro
 
 ## Known limitations
 
+- Hydration was verified manually in the playground. It is not covered by automated tests.
 - Formwerk 0.14.4 rebuilds every row key after `remove` and `insert`, so all rows remount and lose their blurred and touched state (errors hide again until the gate is met, unless a submit was attempted). Values are kept. `move` and `swap` keep row state.
 
 ## Development
