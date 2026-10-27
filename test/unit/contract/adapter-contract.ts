@@ -100,7 +100,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       await vi.waitFor(() => expect(email!.error.value).toBe("Required"))
     })
 
-    it("handleEvent('blur') sets blurred, not touched-only side effects lost", async () => {
+    it("handleEvent('blur') sets blurred", async () => {
       const {
         fields: [email],
       } = mountFields(undefined, field("email"))
