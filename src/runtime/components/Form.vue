@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { computed, useAttrs } from "vue"
   import { provideFormContext } from "../core/form-context"
   import { provideFormRegistry } from "../core/form-registry"
+  import { pickRootAttrs } from "../core/root-attrs"
   import { useAdapter } from "../core/use-adapter"
   import type { ValidateOn } from "../core/types"
 
@@ -14,11 +16,23 @@
   export interface FormSlots {
     default(props: { blurredFields: ReadonlySet<string>; touchedFields: ReadonlySet<string>; dirtyFields: ReadonlySet<string> }): any
   }
+
+  const libraryOwnedAttrs = ["schema", "state", "validate"]
 </script>
 
 <script setup lang="ts">
   const { validateOn = "blur", disabled = false, id, onSubmit } = defineProps<FormProps>()
   defineSlots<FormSlots>()
+  defineOptions({ inheritAttrs: false })
+
+  if (import.meta.env.DEV) {
+    const passed = libraryOwnedAttrs.filter((key) => key in useAttrs())
+    if (passed.length) {
+      console.warn(
+        `[nuxt-ui-forms] UForm ignores ${passed.map((key) => `"${key}"`).join(", ")}: validation belongs to the form library, configure it in useForm().`,
+      )
+    }
+  }
 
   const form = useAdapter().useForm()
   const { blurredFields, touchedFields, dirtyFields } = provideFormRegistry()
@@ -29,11 +43,12 @@
     submitAttempted: form.submitAttempted,
   })
 
+  const nuxtUiFormProps = computed(() => ({ id: id ?? form.id, validateOn: [], validateOnInputDelay: 0, disabled }))
   const submit = () => form.submit((data) => onSubmit?.({ data }))()
 </script>
 
 <template>
-  <NuxtUiForm :id="id ?? form.id" :validate-on="[]" :validate-on-input-delay="0" :disabled="disabled" @submit="submit">
+  <NuxtUiForm v-bind="{ ...pickRootAttrs($attrs), ...nuxtUiFormProps }" @submit="submit">
     <slot :blurred-fields="blurredFields" :touched-fields="touchedFields" :dirty-fields="dirtyFields" />
   </NuxtUiForm>
 </template>

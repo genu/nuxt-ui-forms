@@ -6,6 +6,7 @@
   import { useFormRegistry } from "../core/form-registry"
   import { resolveFieldName, resolveFullName, useNameScope } from "../core/name-scope"
   import { formBusInjectionKey } from "../core/nuxt-ui-keys"
+  import { pickRootAttrs } from "../core/root-attrs"
   import { useAdapter } from "../core/use-adapter"
 
   export type FieldProps = Omit<FormFieldProps, "validateOnInputDelay" | "errorPattern" | "eagerValidation" | "error" | "name"> & {
@@ -27,6 +28,7 @@
 <script setup lang="ts">
   const props = defineProps<FieldProps>()
   defineSlots<FieldSlots>()
+  defineOptions({ inheritAttrs: false })
 
   const scope = useNameScope()
   const fullName = computed(() => resolveFullName(resolveFieldName(props), scope))
@@ -83,7 +85,7 @@
 </script>
 
 <template>
-  <NuxtUiFormField v-bind="props" :name="fullName" :error="error">
+  <NuxtUiFormField v-bind="{ ...props, ...pickRootAttrs($attrs) }" :name="fullName" :error="error">
     <slot v-bind="slotProps" />
   </NuxtUiFormField>
 </template>
