@@ -87,14 +87,23 @@ describe("UFormRepeater", () => {
     expect(textOf(wrapper, "blurred")).toBe("contacts.0.name")
   })
 
-  // Formwerk 0.14.4 rebuilds every row key after remove/insert, so rows remount and lose their local blurred/touched state.
-  it.fails("removing a middle row keeps the other rows' error and touched state", async () => {
+  const interactWithRows = async () => {
     const wrapper = await mountRepeater()
-
     await interact(wrapper, "name-input-0", "alpha")
     await blur(wrapper, "email-input-2")
+    return wrapper
+  }
+
+  it("row state is tracked per row before a remove", async () => {
+    const wrapper = await interactWithRows()
+
     expect(textOf(wrapper, "blurred")).toBe("contacts.0.name,contacts.2.email")
     expect(errorOf(wrapper, "email-field-2")).toBe("Invalid email")
+  })
+
+  // Formwerk 0.14.4 rebuilds every row key after remove/insert, so rows remount and lose their local blurred/touched state.
+  it.fails("removing a middle row keeps the other rows' error and touched state", async () => {
+    const wrapper = await interactWithRows()
 
     await click(wrapper, "remove-1")
 
