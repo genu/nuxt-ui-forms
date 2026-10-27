@@ -4,16 +4,18 @@ export type FieldEventType = "blur" | "focus" | "change" | "input"
 export type ValidateOn = "blur" | "touched" | "dirty"
 
 export interface FieldOptions {
+  /** Relative name; the library may prefix it through its own group or iteration context. */
   name: string
+  /** Absolute path, snapshotted at setup. */
   fullName: string
   label?: string
   description?: string
-  required?: boolean
   disabled?: MaybeRefOrGetter<boolean | undefined>
 }
 
 export interface ArrayOptions {
   name: string
+  /** Absolute path, snapshotted at setup. */
   fullName: string
   min?: number
   max?: number
@@ -43,6 +45,7 @@ export interface ArrayHandle {
   move(from: number, to: number): void
   swap(a: number, b: number): void
   insert(index: number): void
+  /** Renders one row; takes `index` and `as` props and a default slot. */
   Iteration: Component
 }
 

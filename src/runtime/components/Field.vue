@@ -41,7 +41,6 @@
     fullName: fullName.value,
     label: props.label,
     description: props.description,
-    required: props.required,
     disabled: form?.disabled,
   })
   const { value, setValue, touched, blurred, dirty } = field
