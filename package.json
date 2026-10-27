@@ -1,0 +1,74 @@
+{
+  "name": "nuxt-ui-forms",
+  "version": "0.0.0",
+  "description": "Library-agnostic form components for Nuxt UI with pluggable form engine adapters",
+  "license": "MIT",
+  "repository": "https://github.com/genu/nuxt-ui-forms.git",
+  "packageManager": "pnpm@10.29.2",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/module.mjs",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/types.d.mts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/module.mjs"
+    }
+  },
+  "scripts": {
+    "prepack": "nuxt-module-build build",
+    "dev": "pnpm dev:prepare && nuxi dev playground",
+    "dev:build": "nuxi build playground",
+    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@formwerk/core": "^0.14.4",
+    "@nuxt/ui": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@formwerk/core": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@nuxt/kit": "4.3.1",
+    "@vueuse/core": "14.2.1"
+  },
+  "devDependencies": {
+    "@formwerk/core": "0.14.4",
+    "@nuxt/devtools": "3.1.1",
+    "@nuxt/eslint-config": "1.15.1",
+    "@nuxt/module-builder": "1.0.2",
+    "@nuxt/schema": "4.3.1",
+    "@nuxt/test-utils": "4.0.0",
+    "@nuxt/ui": "4.12.0",
+    "@types/node": "26.6.5",
+    "@vue/test-utils": "2.5.1",
+    "eslint": "10.0.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.5",
+    "happy-dom": "21.0.4",
+    "nuxt": "4.3.1",
+    "prettier": "3.8.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18",
+    "vue-tsc": "3.2.4",
+    "zod": "4.6.7"
+  }
+}
