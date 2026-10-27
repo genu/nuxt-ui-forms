@@ -53,6 +53,12 @@ jobs:
       - name: Prepare
         run: pnpm dev:prepare
 
+      - name: Type check
+        run: pnpm test:types
+
+      - name: Run tests
+        run: pnpm test
+
       - name: Build
         run: pnpm prepack
 
