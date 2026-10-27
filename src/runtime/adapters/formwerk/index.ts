@@ -19,9 +19,9 @@ const useForm = (): FormHandle => {
   }
 }
 
-const useField = ({ name, label, description, required, disabled }: FieldOptions): FieldHandle => {
+const useField = ({ name, label, description, disabled }: FieldOptions): FieldHandle => {
   const formField = useFormField({ path: name, label, description, disabled })
-  const { field } = useCustomControl({ name, required, controlType: "NuxtUiControl", _field: formField })
+  const { field } = useCustomControl({ name, controlType: "NuxtUiControl", _field: formField })
 
   return {
     value: field.fieldValue,
@@ -41,18 +41,8 @@ const useGroup = ({ name }: { name: string }) => {
   useFormGroup({ name })
 }
 
-const nextMacrotask = () => new Promise<void>((resolve) => setTimeout(resolve))
-
 const useArray = ({ name, min, max }: { name: string; min?: number; max?: number }): ArrayHandle => {
   const repeater = useFormRepeater({ name, min, max })
-
-  // Formwerk inserts one row at a time and shifts row values over several ticks; inserting again before that settles corrupts them.
-  const insertSequentially = async (index: number, count: number) => {
-    for (let offset = 0; offset < count; offset++) {
-      if (offset) await nextMacrotask()
-      repeater.insert(index + offset)
-    }
-  }
 
   return {
     items: repeater.items,
@@ -60,9 +50,7 @@ const useArray = ({ name, min, max }: { name: string; min?: number; max?: number
     remove: repeater.remove,
     move: repeater.move,
     swap: repeater.swap,
-    insert: (index, count = 1) => {
-      void insertSequentially(index, count)
-    },
+    insert: repeater.insert,
     Iteration: repeater.Iteration,
   }
 }

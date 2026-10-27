@@ -35,7 +35,7 @@ export interface ArrayHandle {
   remove(index: number): void
   move(from: number, to: number): void
   swap(a: number, b: number): void
-  insert(index: number, count?: number): void
+  insert(index: number): void
   Iteration: Component
 }
 

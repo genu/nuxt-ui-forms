@@ -36,6 +36,11 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       opts,
     )
 
+  const settleValidation = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    await flushPromises()
+  }
+
   const submitWith = async (form: FormHandle) => {
     const handler = vi.fn()
     await form.submit(handler)()
@@ -47,6 +52,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
     enableAutoUnmount(afterEach)
 
     it("useForm throws outside a form", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
       let error: unknown
       mount(
         defineComponent({
@@ -63,6 +69,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
 
       expect(error).toBeInstanceOf(Error)
       expect((error as Error).message).toContain("useForm()")
+      warn.mockRestore()
     })
 
     it("setValue updates value and marks dirty", async () => {
@@ -84,7 +91,9 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       const {
         fields: [email],
       } = mountFields({ initialValues: { email: "a@b.co" } }, field("email"))
-      await flushPromises()
+
+      email!.setValue("b@c.co")
+      await settleValidation()
       expect(email!.error.value).toBeUndefined()
 
       email!.setValue("")
@@ -237,11 +246,10 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       expect([inserted[0], inserted[2]]).toEqual([a, b])
       expect([a, b]).not.toContain(inserted[1])
 
-      contacts.insert(0, 2)
-      await vi.waitFor(() => expect(contacts.items.value).toHaveLength(5))
-      const insertedMany = [...contacts.items.value]
-      expect(insertedMany.slice(2)).toEqual(inserted)
-      expect(new Set(insertedMany).size).toBe(5)
+      const insertedFirst = await step(() => contacts.insert(0))
+      expect(insertedFirst).toHaveLength(4)
+      expect(insertedFirst.slice(1)).toEqual(inserted)
+      expect(new Set(insertedFirst).size).toBe(4)
     })
 
     const mountContacts = (contacts: Record<string, unknown>[]) => {
@@ -281,14 +289,14 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       }
 
       array.insert(1)
-      await vi.waitFor(() => expect(array.items.value).toHaveLength(3))
       await flushPromises()
+      expect(array.items.value).toHaveLength(3)
       expect(await submittedEmails()).toEqual(["a", undefined, "b"])
 
-      array.insert(1, 2)
-      await vi.waitFor(() => expect(array.items.value).toHaveLength(5))
+      array.insert(0)
       await flushPromises()
-      expect(await submittedEmails()).toEqual(["a", undefined, undefined, undefined, "b"])
+      expect(array.items.value).toHaveLength(4)
+      expect(await submittedEmails()).toEqual([undefined, "a", undefined, "b"])
     })
 
     it("fields in an array iteration write to values at the indexed path", async () => {
