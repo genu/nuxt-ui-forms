@@ -12,6 +12,13 @@ export interface FieldOptions {
   disabled?: MaybeRefOrGetter<boolean | undefined>
 }
 
+export interface ArrayOptions {
+  name: string
+  fullName: string
+  min?: number
+  max?: number
+}
+
 export interface FieldHandle {
   value: Ref<unknown>
   setValue(value: unknown): void
@@ -44,5 +51,5 @@ export interface FormAdapter {
   useForm(): FormHandle
   useField(options: FieldOptions): FieldHandle
   useGroup(options: { name: string }): void
-  useArray(options: { name: string; min?: number; max?: number }): ArrayHandle
+  useArray(options: ArrayOptions): ArrayHandle
 }

@@ -210,7 +210,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
     })
 
     it("array add/remove/move/swap/insert change items and keep keys stable for untouched rows", async () => {
-      const contacts = mountInHost(() => adapter.useArray({ name: "contacts" }), {
+      const contacts = mountInHost(() => adapter.useArray({ name: "contacts", fullName: "contacts" }), {
         initialValues: { contacts: [{ email: "a" }, { email: "b" }] },
       })
       await flushPromises()
@@ -252,15 +252,16 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       expect(new Set(insertedFirst).size).toBe(4)
     })
 
-    const mountContacts = (contacts: Record<string, unknown>[]) => {
+    const mountContacts = (contacts: Record<string, unknown>[], group?: string) => {
       const rows: FieldHandle[] = []
       let form!: FormHandle
       let array!: ArrayHandle
+      const arrayPath = group ? `${group}.contacts` : "contacts"
 
       const Row = defineComponent({
         props: { index: { type: Number, required: true } },
         setup(props) {
-          rows[props.index] = adapter.useField(field("email", { fullName: `contacts.${props.index}.email` }))
+          rows[props.index] = adapter.useField(field("email", { fullName: `${arrayPath}.${props.index}.email` }))
           return () => null
         },
       })
@@ -268,13 +269,15 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       const Contacts = defineComponent({
         setup() {
           form = adapter.useForm()
-          array = adapter.useArray({ name: "contacts" })
+          if (group) adapter.useGroup({ name: group })
+          array = adapter.useArray({ name: "contacts", fullName: arrayPath })
           const { items, Iteration } = array
           return () => items.value.map((key, index) => h(Iteration, { key, index }, { default: () => h(Row, { index }) }))
         },
       })
 
-      mount(kit.host(Contacts, { initialValues: { email: "root@b.co", contacts } }))
+      const initialValues = group ? { email: "root@b.co", [group]: { contacts } } : { email: "root@b.co", contacts }
+      mount(kit.host(Contacts, { initialValues }))
 
       return { rows, form, array }
     }
@@ -322,6 +325,22 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
         email: "root@b.co",
         contacts: [{ email: "first@b.co" }, { email: "second@b.co" }],
       })
+    })
+
+    it("array inside a group reads and writes the group-prefixed path", async () => {
+      const { rows, form, array } = mountContacts([{ email: "a" }, { email: "b" }], "user")
+      await flushPromises()
+
+      expect(array.items.value).toHaveLength(2)
+      expect(rows[1]!.value.value).toBe("b")
+
+      rows[0]!.setValue("first@b.co")
+      array.remove(1)
+      await flushPromises()
+
+      const handler = await submitWith(form)
+
+      expect(handler).toHaveBeenCalledWith({ email: "root@b.co", user: { contacts: [{ email: "first@b.co" }] } })
     })
 
     it("group prefixes child field paths", async () => {

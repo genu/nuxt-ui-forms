@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import type { VueWrapper } from "@vue/test-utils"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
+import GroupRepeaterForm from "../fixtures/basic/components/GroupRepeaterForm.vue"
 import RepeaterForm from "../fixtures/basic/components/RepeaterForm.vue"
 import { errorOf, interact, settle, textOf } from "./helpers"
 
@@ -168,5 +169,54 @@ describe("UFormRepeater", () => {
     await click(wrapper, "add")
     expect(rowCount(wrapper)).toBe(3)
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("since max is 3"))
+  })
+})
+
+describe("UFormRepeater inside UFormGroup", () => {
+  const mountNested = async (props: Record<string, unknown> = {}) => {
+    const wrapper = await mountSuspended(GroupRepeaterForm, { props })
+    await settle()
+    return wrapper
+  }
+
+  it("renders rows from the group-prefixed initial values with group-prefixed names", async () => {
+    const wrapper = await mountNested()
+
+    expect(rowCount(wrapper)).toBe(2)
+    expect(valueOf(wrapper, "email-input-1")).toBe("b@x.co")
+    expect(wrapper.get<HTMLInputElement>('[data-testid="name-input-1"]').element.name).toBe("user.contacts.1.name")
+  })
+
+  it("blur and errors stay isolated to the row", async () => {
+    const wrapper = await mountNested()
+
+    await blur(wrapper, "name-input-0")
+
+    expect(textOf(wrapper, "blurred")).toBe("user.contacts.0.name")
+    expect(errorOf(wrapper, "name-field-0")).toBe("Name required")
+    expect(errorOf(wrapper, "name-field-1")).toBeUndefined()
+  })
+
+  it("submits values at user.contacts.N", async () => {
+    const onSubmitted = vi.fn()
+    const wrapper = await mountNested({ onSubmitted })
+
+    await interact(wrapper, "name-input-0", "alpha")
+    await interact(wrapper, "name-input-1", "beta")
+    await click(wrapper, "remove-0")
+    await click(wrapper, "add")
+    await interact(wrapper, "name-input-1", "gamma")
+    await interact(wrapper, "email-input-1", "c@x.co")
+    await wrapper.get("form").trigger("submit")
+    await settle()
+
+    expect(onSubmitted).toHaveBeenCalledWith({
+      user: {
+        contacts: [
+          { name: "beta", email: "b@x.co" },
+          { name: "gamma", email: "c@x.co" },
+        ],
+      },
+    })
   })
 })
