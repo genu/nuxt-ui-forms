@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   },
   vite: {
     server: {
-      hmr: { clientPort: 3300 },
+      ws: { clientPort: 3300 },
     },
   },
   nitro: {
