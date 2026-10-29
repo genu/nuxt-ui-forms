@@ -3,6 +3,7 @@ import { defineComponent, h, type Component } from "vue"
 import type { VueWrapper } from "@vue/test-utils"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
 import { useNuxtApp } from "#app"
+import { adapter } from "#nuxt-ui-forms/adapter"
 import BasicForm from "../fixtures/basic/components/BasicForm.vue"
 import FileForm from "../fixtures/basic/components/FileForm.vue"
 import type { FormsHub } from "../../src/runtime/devtools/hub"
@@ -43,9 +44,21 @@ const Twins = defineComponent({
   setup: () => () => h("div", [h(BasicForm, { id: "twin" }), h(BasicForm, { id: "twin" })]),
 })
 
+const spyOnFormSnapshot = () => {
+  const snapshot = vi.fn()
+  const useForm = adapter.useForm
+  vi.spyOn(adapter, "useForm").mockImplementation(() => {
+    const handle = useForm()
+    snapshot.mockImplementation(handle.snapshot!)
+    return { ...handle, snapshot }
+  })
+  return snapshot
+}
+
 describe("forms devtools hub", () => {
   afterEach(() => {
     mounted.splice(0).forEach((wrapper) => wrapper.unmount())
+    vi.restoreAllMocks()
   })
 
   it("lists a mounted UForm with its fields", async () => {
@@ -114,5 +127,26 @@ describe("forms devtools hub", () => {
       size: 6,
       type: "image/png",
     })
+  })
+
+  it("stays inert without subscribers and resumes once someone subscribes", async () => {
+    const snapshot = spyOnFormSnapshot()
+    const wrapper = await mount(BasicForm, { id: "profile" })
+    snapshot.mockClear()
+
+    await interact(wrapper, "email-input", "a@b.co")
+    expect(snapshot).not.toHaveBeenCalled()
+
+    const listener = vi.fn()
+    const unsubscribe = hub().subscribe(listener)
+    await vi.waitFor(() => expect(listener).toHaveBeenCalled())
+    expect(snapshot).toHaveBeenCalled()
+
+    snapshot.mockClear()
+    listener.mockClear()
+    await interact(wrapper, "email-input", "c@d.co")
+    await vi.waitFor(() => expect(listener).toHaveBeenCalled())
+    expect(snapshot).toHaveBeenCalled()
+    unsubscribe()
   })
 })

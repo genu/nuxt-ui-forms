@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { computed } from "vue"
 import { createFormsHub } from "../../src/runtime/devtools/hub"
 import type { FormSnapshot } from "../../src/runtime/devtools/snapshot"
 
@@ -140,5 +141,22 @@ describe("createFormsHub", () => {
 
     expect(() => vi.runAllTimers()).not.toThrow()
     expect(listener).toHaveBeenCalledOnce()
+  })
+
+  it("exposes a reactive subscriber count", () => {
+    const hub = createFormsHub()
+    const watched = computed(() => hub.subscriberCount.value)
+    expect(watched.value).toBe(0)
+
+    const unsubscribeA = hub.subscribe(() => {})
+    const unsubscribeB = hub.subscribe(() => {})
+    expect(watched.value).toBe(2)
+
+    unsubscribeA()
+    unsubscribeA()
+    expect(watched.value).toBe(1)
+
+    unsubscribeB()
+    expect(watched.value).toBe(0)
   })
 })

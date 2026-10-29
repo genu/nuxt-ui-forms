@@ -40,19 +40,20 @@ export const useFormDevtools = ({ id, adapter, form, registry }: FormDevtoolsOpt
   onBeforeUnmount(() => unregister?.())
 
   watch(
-    () => [
-      form.submitAttempted.value,
-      form.snapshot?.(),
-      [...registry.entries()].map(([name, { value, error, touched, blurred, dirty }]) => [
-        name,
-        value.value,
-        error.value,
-        touched.value,
-        blurred.value,
-        dirty.value,
-      ]),
-    ],
-    () => hub.notify(),
+    () =>
+      hub.subscriberCount.value > 0 && [
+        form.submitAttempted.value,
+        form.snapshot?.(),
+        [...registry.entries()].map(([name, { value, error, touched, blurred, dirty }]) => [
+          name,
+          value.value,
+          error.value,
+          touched.value,
+          blurred.value,
+          dirty.value,
+        ]),
+      ],
+    (observed) => observed && hub.notify(),
     { flush: "post", deep: true },
   )
 }

@@ -1,3 +1,4 @@
+import { readonly, shallowRef, type Ref } from "vue"
 import type { FormSnapshot } from "./snapshot"
 
 export interface FormsHub {
@@ -5,6 +6,7 @@ export interface FormsHub {
   has(id: string): boolean
   list(): FormSnapshot[]
   subscribe(cb: () => void): () => void
+  subscriberCount: Readonly<Ref<number>>
   notify(): void
 }
 
@@ -23,6 +25,7 @@ const attempt = <T>(fn: () => T): T[] => {
 export const createFormsHub = ({ throttleMs = 50 }: FormsHubOptions = {}): FormsHub => {
   const readers = new Map<string, () => FormSnapshot>()
   const subscribers = new Set<() => void>()
+  const subscriberCount = shallowRef(0)
   let pending: ReturnType<typeof setTimeout> | undefined
 
   const flush = () => {
@@ -48,8 +51,13 @@ export const createFormsHub = ({ throttleMs = 50 }: FormsHubOptions = {}): Forms
     list: () => [...readers.values()].flatMap((read) => attempt(read)),
     subscribe(cb) {
       subscribers.add(cb)
-      return () => subscribers.delete(cb)
+      subscriberCount.value = subscribers.size
+      return () => {
+        subscribers.delete(cb)
+        subscriberCount.value = subscribers.size
+      }
     },
+    subscriberCount: readonly(subscriberCount),
     notify,
   }
 }
