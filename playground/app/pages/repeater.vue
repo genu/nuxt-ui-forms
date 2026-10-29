@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
   const { values } = useForm({
+    id: "Repeater Form",
     schema,
     initialValues: {
       contacts: [

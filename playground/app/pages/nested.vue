@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
   const { values } = useForm({
+    id: "Nested Form",
     schema,
     initialValues: { company: { employees: [{ name: "", role: "" }] } },
   })

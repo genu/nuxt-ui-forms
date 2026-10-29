@@ -17,7 +17,7 @@
 <script setup lang="ts">
   const { validateOn, description } = defineProps<Props>()
 
-  useForm({ schema })
+  useForm({ id: `validateOn ${validateOn} Form`, schema })
   const toast = useToast()
 
   const onSubmit = () => {

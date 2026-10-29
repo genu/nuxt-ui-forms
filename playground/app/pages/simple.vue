@@ -11,7 +11,7 @@
 </script>
 
 <script setup lang="ts">
-  const { values, reset } = useForm({ schema, initialValues: { newsletter: false } })
+  const { values, reset } = useForm({ id: "Simple Form", schema, initialValues: { newsletter: false } })
   const toast = useToast()
   const submitted = ref<unknown>()
 
