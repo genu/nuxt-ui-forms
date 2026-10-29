@@ -1,3 +1,9 @@
+<script setup lang="ts">
+  useHostColorMode()
+</script>
+
 <template>
-  <NuxtPage />
+  <UApp>
+    <NuxtPage />
+  </UApp>
 </template>

@@ -1,40 +1,35 @@
-<script lang="ts">
-  import type { NuxtDevtoolsHostClient } from "@nuxt/devtools-kit/types"
-
-  type HostWindow = Window & { __NUXT_DEVTOOLS_HOST__?: NuxtDevtoolsHostClient }
-</script>
-
 <script setup lang="ts">
-  const host = shallowRef<NuxtDevtoolsHostClient>()
+  const { forms, connected, selectedId, selected } = useFormsHub()
 
-  onMounted(() => {
-    host.value = (window.parent as HostWindow).__NUXT_DEVTOOLS_HOST__
-  })
+  const select = (id: string) => (selectedId.value = id)
 </script>
 
 <template>
-  <main>
-    <h1>Forms devtools</h1>
-    <p v-if="host" data-host="reachable">Host app reachable (Vue {{ host.nuxt.vueApp.version }})</p>
-    <p v-else data-host="unreachable">Host app not reachable</p>
+  <main class="flex h-screen text-default">
+    <div v-if="!connected" class="m-auto max-w-md p-4" data-state="disconnected">
+      <UAlert
+        color="warning"
+        variant="subtle"
+        title="Not running inside Nuxt DevTools"
+        description="Open this page from the Forms tab of Nuxt DevTools in a running dev app." />
+    </div>
+
+    <div v-else-if="!forms.length" class="m-auto max-w-md p-4" data-state="empty">
+      <UAlert
+        color="neutral"
+        variant="subtle"
+        title="No forms mounted"
+        description="Forms appear here while a UForm is mounted on the current page." />
+    </div>
+
+    <template v-else>
+      <aside class="w-72 shrink-0 overflow-y-auto border-e border-default" data-state="forms">
+        <h1 class="px-4 pt-4 text-xs font-semibold tracking-wide text-muted uppercase">Forms ({{ forms.length }})</h1>
+        <FormList :forms="forms" :selected-id="selected?.id" @select="select" />
+      </aside>
+      <section class="min-w-0 flex-1 overflow-y-auto">
+        <FormDetail v-if="selected" :form="selected" />
+      </section>
+    </template>
   </main>
 </template>
-
-<style scoped>
-  main {
-    min-height: 100vh;
-    padding: 2rem;
-    font-family: system-ui, sans-serif;
-    color-scheme: light dark;
-    background: Canvas;
-    color: CanvasText;
-  }
-
-  [data-host="reachable"] {
-    color: #16a34a;
-  }
-
-  [data-host="unreachable"] {
-    color: #ca8a04;
-  }
-</style>
