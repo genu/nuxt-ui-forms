@@ -6,8 +6,13 @@ import { NUXT_DEVTOOLS_GROUP_ID, onDevtoolsReady } from "@nuxt/devtools-kit"
 export const DEVTOOLS_UI_ROUTE = "/__nuxt-ui-forms"
 export const DEVTOOLS_UI_LOCAL_PORT = 3300
 
+export const shouldSetupDevtools = (options: { devtools: boolean }, nuxt: Nuxt) => options.devtools && nuxt.options.dev
+
+const isNuxtDevtoolsDisabled = ({ options: { devtools } }: Nuxt) =>
+  devtools === false || (typeof devtools === "object" && devtools.enabled === false)
+
 export const setupDevToolsUI = (nuxt: Nuxt, resolver: Resolver) => {
-  if (!nuxt.options.dev) return
+  if (isNuxtDevtoolsDisabled(nuxt)) return
 
   const clientPath = resolver.resolve("./client")
 

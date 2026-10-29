@@ -12,12 +12,12 @@ vi.mock("@nuxt/devtools-kit", () => ({
   onDevtoolsReady,
 }))
 
-const { setupDevToolsUI, DEVTOOLS_UI_ROUTE, DEVTOOLS_UI_LOCAL_PORT } = await import("../../src/devtools")
+const { setupDevToolsUI, shouldSetupDevtools, DEVTOOLS_UI_ROUTE, DEVTOOLS_UI_LOCAL_PORT } = await import("../../src/devtools")
 
-const createNuxt = (dev = true) => {
+const createNuxt = ({ dev = true, devtools = {} }: { dev?: boolean; devtools?: Nuxt["options"]["devtools"] } = {}) => {
   const hooks = new Map<string, (...args: any[]) => unknown>()
   const nuxt = {
-    options: { dev },
+    options: { dev, devtools },
     hook: vi.fn((name: string, fn: (...args: any[]) => unknown) => hooks.set(name, fn)),
   } as unknown as Nuxt
   return { nuxt, hooks }
@@ -78,11 +78,28 @@ describe("setupDevToolsUI", () => {
     expect(use).toHaveBeenCalledWith(DEVTOOLS_UI_ROUTE, expect.any(Function))
   })
 
-  it("does nothing outside dev", () => {
-    const { nuxt } = createNuxt(false)
+  it.each<Nuxt["options"]["devtools"]>([{ enabled: false }, false])(
+    "mounts no routes and registers nothing when Nuxt DevTools are %o",
+    (devtools) => {
+      mkdirSync(join(dir, "client"))
+      const { nuxt } = createNuxt({ devtools })
 
-    expect(() => setupDevToolsUI(nuxt, createResolver(dir))).not.toThrow()
-    expect(onDevtoolsReady).not.toHaveBeenCalled()
-    expect(nuxt.hook).not.toHaveBeenCalled()
+      setupDevToolsUI(nuxt, createResolver(dir))
+
+      expect(onDevtoolsReady).not.toHaveBeenCalled()
+      expect(nuxt.hook).not.toHaveBeenCalled()
+    },
+  )
+})
+
+describe("shouldSetupDevtools", () => {
+  it.each([
+    { dev: false, option: true, devtools: {}, expected: false },
+    { dev: true, option: false, devtools: {}, expected: false },
+    { dev: true, option: true, devtools: {}, expected: true },
+    { dev: true, option: true, devtools: { enabled: false }, expected: true },
+    { dev: false, option: true, devtools: { enabled: false }, expected: false },
+  ])("dev $dev, forms.devtools $option, nuxt devtools $devtools -> $expected", ({ dev, option, devtools, expected }) => {
+    expect(shouldSetupDevtools({ devtools: option }, createNuxt({ dev, devtools }).nuxt)).toBe(expected)
   })
 })
