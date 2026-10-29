@@ -35,12 +35,14 @@
 ### Task 1: Contract changes, Formwerk kept green
 
 **Files:**
+
 - Modify: `src/runtime/core/types.ts`
 - Modify: `src/runtime/components/Form.vue`, `Field.vue`, `Repeater.vue`
 - Modify: `src/runtime/adapters/formwerk/index.ts`
 - Modify: `test/unit/contract/adapter-contract.ts`, `test/unit/formwerk-adapter.test.ts`
 
 **Interfaces:**
+
 - Produces (in `types.ts`):
   - `export interface UseFormOptions { form?: unknown }`
   - `FormAdapter.useForm(options: UseFormOptions): FormHandle`
@@ -49,10 +51,10 @@
 - Produces: `UForm` prop `form?: object`.
 
 - [ ] **Step 1: Update the contract harness and add the new case**
-  - `field(name, extra)` builds `fullName: () => name`. `mountContacts`'s `Row` uses `fullName: () => \`${arrayPath}.${props.index}.email\``, and `useArray` gets `fullName: () => arrayPath`. The "group prefixes" `Street` gets `fullName: () => "address.street"`.
+  - `field(name, extra)` builds `fullName: () => name`. `mountContacts`'s `Row` uses `fullName: () => \`${arrayPath}.${props.index}.email\``, and `useArray`gets`fullName: () => arrayPath`. The "group prefixes" `Street`gets`fullName: () => "address.street"`.
   - Every `adapter.useForm()` inside the host becomes `adapter.useForm(kit.formOptions())`. The "useForm throws outside a form" case calls `adapter.useForm({})`.
   - Wrap the two disabled cases with `it.runIf(kit.capabilities.disabledExcludesData)`.
-  - Add a case: `it("useField without a form never errors", ...)`. Mount a component *not* wrapped by `kit.host` that calls `adapter.useField(field("email"))` with `console.warn`/`console.error` spied. Call `setValue("x")`, then `handleEvent("blur")`, then `handleEvent("input")`, and `flushPromises()`. Expect `value.value === "x"`, `error.value === undefined`, and both spies not called.
+  - Add a case: `it("useField without a form never errors", ...)`. Mount a component _not_ wrapped by `kit.host` that calls `adapter.useField(field("email"))` with `console.warn`/`console.error` spied. Call `setValue("x")`, then `handleEvent("blur")`, then `handleEvent("input")`, and `flushPromises()`. Expect `value.value === "x"`, `error.value === undefined`, and both spies not called.
 
 - [ ] **Step 2: Run to verify it fails**
 
@@ -77,12 +79,14 @@
 ### Task 2: Formisch runtime adapter
 
 **Files:**
+
 - Create: `src/runtime/adapters/formisch/index.ts` (the `FormAdapter`)
 - Create: `src/runtime/adapters/formisch/path.ts` (`toPath`)
 - Create: `test/unit/formisch-path.test.ts`, `test/unit/formisch-adapter.test.ts`
 - Modify: `package.json` (devDependencies `@formisch/vue` `1.1.1` and `valibot` `1.5.0`; run `pnpm add -D -E @formisch/vue@1.1.1 valibot@1.5.0`)
 
 **Interfaces:**
+
 - Consumes: Task 1's `UseFormOptions`, getter `fullName`, `AdapterKit.formOptions`/`capabilities`.
 - Produces: `export const adapter: FormAdapter` with `name: "formisch"`. `export const toPath = (fullName: string): (string | number)[]` (digit-only segments become numbers, empty segments dropped).
 
@@ -97,6 +101,7 @@
     - `address: v.optional(v.object({ street: v.optional(v.string()) }))`
 
     Optional is required on the contact `email`: Formisch only applies `emptyInput` (`""` for strings) to required fields, and the insert case expects `undefined` rows.
+
   - Formisch-only cases in the same file, outside the shared suite:
     - `it("useField throws a clear error for a name missing from the schema")`: the `Error` message contains `nuxt-ui-forms`, `"missing.path"` and `schema`.
     - `it("a row handle stays readable after its row is removed")`: mount the contacts host, keep `rows[1]`, `array.remove(1)`, `flushPromises()`. Reading `rows[1].value.value`, `.error.value` and `.touched.value` doesn't throw.
@@ -131,12 +136,14 @@
 ### Task 3: Register the adapter in the module
 
 **Files:**
+
 - Modify: `src/adapters/index.ts`, `src/adapters/formwerk.ts`
 - Create: `src/adapters/formisch.ts`
 - Modify: `src/module.ts`, `package.json` (peers)
 - Test: `test/unit/adapters.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `AdapterDefinition.peers: string[]` (replaces `peer`)
   - `export const missingPeersError = (adapter: AdapterDefinition, isResolvable: (id: string) => boolean): string | undefined` in `src/adapters/index.ts`
@@ -172,11 +179,13 @@
 ### Task 4: Formisch fixture and shared component tests
 
 **Files:**
+
 - Create: `test/fixtures/formisch/` with `nuxt.config.ts` (`forms: { adapter: "formisch" }`, `ui.colorMode: false`), `package.json`, `app.vue`, and `components/` holding Formisch versions of every component in `test/fixtures/basic/components/`. Use the same file names, props, `data-testid`s and error messages. Each creates its store with `useForm({ schema, initialInput, validate: "initial" })` and renders `<UForm :form="form">`, except `FormWithoutUseForm.vue` and `FieldWithoutForm.vue`. Add `DefaultModesForm.vue` (Formisch defaults, one required `email` field with message `Required`, `data-testid`s `email-field`/`email-input`, and a submit button `submit`).
 - Create: `test/fixture-alias.d.ts` (`declare module "#fixture/components/*.vue"` exporting a `DefineComponent`)
 - Modify: `vitest.config.ts`, `test/nuxt/*.test.ts`, `test/nuxt/helpers.ts`, `test/e2e/basic.test.ts`
 
 **Interfaces:**
+
 - Consumes: Tasks 1–3.
 - Produces: `export const adapterName: "formwerk" | "formisch"` in `test/nuxt/helpers.ts` (from `process.env.NUXT_UI_FORMS_ADAPTER ?? "formwerk"`).
 
@@ -193,6 +202,7 @@
     3. `interact(wrapper, "email-input", "a@b.co")`; it is `undefined`.
 
     The `basic` fixture needs no `DefaultModesForm` because the test is skipped there.
+
   - Add a shared test in `form.test.ts`: "a throwing @submit handler ends the loading state without an unhandled rejection". Add an `onSubmitted` that throws to `BasicForm`, or a `throwOnSubmit` prop. After submit and `settle()`, the email input is not disabled.
   - Formwerk may surface the rejection. If it does, assert the actual Formwerk behaviour in a `runIf` branch rather than changing Formwerk.
 
@@ -217,12 +227,14 @@
 ### Task 5: Playground adapter switch
 
 **Files:**
+
 - Modify: `playground/nuxt.config.ts`, `playground/app/app.vue`, `playground/app/pages/index.vue`
 - Move: `playground/app/pages/{simple,nested,repeater,validate-on}.vue` → `playground/app/pages/formwerk/`
 - Create: `playground/app/pages/formisch/{simple,nested,repeater,validate-on}.vue`, plus a Formisch variant of `components/ValidateOnDemo.vue` (e.g. `ValidateOnDemoFormisch.vue`) if the existing one calls Formwerk's `useForm`.
 - Modify: `package.json` scripts
 
 **Interfaces:**
+
 - Produces: `runtimeConfig.public.formsAdapter` (`"formwerk" | "formisch"`), set in `playground/nuxt.config.ts` from `process.env.NUXT_UI_FORMS_ADAPTER ?? "formwerk"`, which also sets `forms.adapter`.
 
 - [ ] **Step 1: Implement**
@@ -242,6 +254,7 @@
 ### Task 6: Docs
 
 **Files:**
+
 - Modify: `README.md`, `CLAUDE.md`
 
 - [ ] **Step 1: README**

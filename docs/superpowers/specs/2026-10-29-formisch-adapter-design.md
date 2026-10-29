@@ -29,18 +29,18 @@ The second adapter is also the first real test of the abstraction. Where Formisc
 
 ## How Formisch differs (from reading `@formisch/vue` 1.1.1 source)
 
-| Concern | Formwerk | Formisch |
-| --- | --- | --- |
-| Finding the form | `useFormContext()` (ancestor's `useForm()` provides it) | No context. The store is passed explicitly (`<Form :of="form">`, `useField(form, { path })`) |
-| Paths | dot strings, group/iteration prefixes resolved by the library | arrays (`["items", 0, "name"]`), always absolute. Every path must exist in the Valibot schema, or `getFieldStore` throws |
-| Validation timing | eager | `validate` (default `"submit"`) and `revalidate` (default `"input"`) on `useForm`. Errors are `null` until a mode fires |
-| Touched / blurred | both | `isTouched` (set on focus), `isEdited`, `isDirty`. No blurred state |
-| Array rows | rebuilds row keys on `remove`/`insert`, so rows remount (known limitation) | item ids move with rows. Field stores are index-keyed and state is copied between indices, so a row's component instance survives but its index changes |
-| Array API | `add/remove/move/swap/insert`, `min/max`, an `Iteration` component | free functions `insert(form, { path, at?, initialInput? })`, `remove({ path, at })`, `move({ path, from, to })`, `swap({ path, at, and })`, `replace`. No min/max, no `Iteration` |
-| Disabled | disabled fields are skipped by validation and excluded from data | no concept |
-| Submit | `handleSubmit(handler)` | `handleSubmit(form, handler)` returns `(event?) => Promise`. Sets `isSubmitted` at the start, catches handler errors into the form's root `errors` |
-| Reset | `reset()` | `reset(form)`. Also clears `isSubmitted` and re-validates when `validate: "initial"` |
-| Snapshot data | `values`, `getIssues()` | `getInput(form)`, `getDeepErrorEntries(form)` (`{ path: array, errors }`), `isValid`, `isDirty`, `isSubmitting` |
+| Concern           | Formwerk                                                                   | Formisch                                                                                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Finding the form  | `useFormContext()` (ancestor's `useForm()` provides it)                    | No context. The store is passed explicitly (`<Form :of="form">`, `useField(form, { path })`)                                                                                      |
+| Paths             | dot strings, group/iteration prefixes resolved by the library              | arrays (`["items", 0, "name"]`), always absolute. Every path must exist in the Valibot schema, or `getFieldStore` throws                                                          |
+| Validation timing | eager                                                                      | `validate` (default `"submit"`) and `revalidate` (default `"input"`) on `useForm`. Errors are `null` until a mode fires                                                           |
+| Touched / blurred | both                                                                       | `isTouched` (set on focus), `isEdited`, `isDirty`. No blurred state                                                                                                               |
+| Array rows        | rebuilds row keys on `remove`/`insert`, so rows remount (known limitation) | item ids move with rows. Field stores are index-keyed and state is copied between indices, so a row's component instance survives but its index changes                           |
+| Array API         | `add/remove/move/swap/insert`, `min/max`, an `Iteration` component         | free functions `insert(form, { path, at?, initialInput? })`, `remove({ path, at })`, `move({ path, from, to })`, `swap({ path, at, and })`, `replace`. No min/max, no `Iteration` |
+| Disabled          | disabled fields are skipped by validation and excluded from data           | no concept                                                                                                                                                                        |
+| Submit            | `handleSubmit(handler)`                                                    | `handleSubmit(form, handler)` returns `(event?) => Promise`. Sets `isSubmitted` at the start, catches handler errors into the form's root `errors`                                |
+| Reset             | `reset()`                                                                  | `reset(form)`. Also clears `isSubmitted` and re-validates when `validate: "initial"`                                                                                              |
+| Snapshot data     | `values`, `getIssues()`                                                    | `getInput(form)`, `getDeepErrorEntries(form)` (`{ path: array, errors }`), `isValid`, `isDirty`, `isSubmitting`                                                                   |
 
 ## Contract changes
 
@@ -56,6 +56,7 @@ Fields and arrays get the Formisch store from the adapter, not from core. The Fo
 **Peers:** `@formisch/vue` (optional peer `^1.1.1`) and `valibot` (Formisch's own peer). `AdapterDefinition.peer` becomes `peers: string[]` so the missing-peer error prints `pnpm add @formisch/vue valibot`. No alias `setup` is needed (Formisch has no injection context to duplicate).
 
 **`useForm({ form })`:**
+
 - `id`: Vue `useId()`.
 - `submitAttempted`: `computed(() => store.isSubmitted)`.
 - `submit(handler)`: `handleSubmit(store, (output) => handler(output))`. Handler errors are caught by Formisch into the form's root errors, not rethrown. Document this.
@@ -63,6 +64,7 @@ Fields and arrays get the Formisch store from the adapter, not from core. The Fo
 - `snapshot()`: `values: getInput(store)`, errors from `getDeepErrorEntries(store)` keyed by `path.join(".")` (root-level entries keyed `""`), `valid: store.isValid`, `dirty: store.isDirty`, `submitting: store.isSubmitting`.
 
 **`useField({ fullName, disabled })`:**
+
 - Path: `computed(() => toPath(fullName()))`, splitting on `.` and turning numeric segments into numbers. `useField(store, () => ({ path: path.value }))` from `@formisch/vue` (it accepts getters).
 - `value`/`setValue`: `field.input` getter/setter. The setter triggers Formisch's `"input"` mode.
 - `error`: first of `field.errors`. `touched`: `field.isTouched`. `dirty`: `field.isDirty`.
@@ -74,6 +76,7 @@ Fields and arrays get the Formisch store from the adapter, not from core. The Fo
 **`useGroup`:** a no-op. Our name scope already builds the full name, and the Formisch adapter only uses `fullName`.
 
 **`useArray({ fullName, min, max })`:**
+
 - `useFieldArray(store, () => ({ path: path.value }))`. `items` is the item id list.
 - `add(count = 1)`, `insert(index)`: `insert(store, { path, at })`, stopping at `max`. `remove(index)`: stops at `min`. `move`, `swap`: straight through.
 - Match Formwerk's `min`/`max` semantics as the contract and nuxt tests pin them. The builder should check what Formwerk does for an initial array shorter than `min` and mirror it.
@@ -82,6 +85,7 @@ Fields and arrays get the Formisch store from the adapter, not from core. The Fo
 ## Validation timing and the `validateOn` gate
 
 The library owns timing; `validateOn` only gates visibility. With Formisch:
+
 - `validate` / `revalidate` on Formisch's `useForm` decide when errors are computed.
 - `validateOn` on `UForm` decides when computed errors are shown. A submit attempt shows all errors.
 
