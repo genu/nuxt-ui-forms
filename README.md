@@ -211,6 +211,21 @@ Each row must be rendered through the `Iteration` component, which scopes the ro
 
 `as` sets the element `Iteration` renders; without it the row renders without a wrapper element.
 
+## Devtools
+
+In development the module adds a read-only **Forms** tab to [Nuxt DevTools](https://devtools.nuxt.com/) (under the Nuxt group of the dock). It lists every mounted `UForm` and updates live while you use the app:
+
+- Per form: id, adapter, and badges for submit attempted, plus valid, dirty and submitting when the adapter reports them (Formwerk does).
+- A field tree built from the full field names (`address.city`, `contacts.0.email`), with each field's value, error, and touched, blurred and dirty badges.
+- The form values as JSON and the list of form errors.
+
+The tab only reads state: it does not edit values or trigger submit or reset.
+
+- Requires Nuxt DevTools v4 (Nuxt >= 4.5). With DevTools v3 the tab is not registered.
+- Development only. Nothing from it is included in production builds.
+- DevTools v4 asks for a one-time authorization code the first time you open it in a browser. The code is printed in the terminal running `nuxi dev`.
+- To turn the tab off, set `forms: { devtools: false }`.
+
 ## Known limitations
 
 - Hydration was verified manually in the playground. It is not covered by automated tests.
@@ -220,17 +235,21 @@ Each row must be rendered through the `Iteration` component, which scopes the ro
 
 ```bash
 pnpm install
-pnpm dev:prepare   # stub build + generate types for the module and playground
+pnpm dev:prepare   # stub build + generate types for the module, playground and devtools client
 pnpm dev           # playground at http://localhost:3000
 pnpm dev:build     # build the playground
+pnpm client:dev    # devtools client dev server on port 3300
+pnpm client:build  # build the devtools client to dist/client
 pnpm lint          # ESLint (@nuxt/eslint-config + Prettier)
 pnpm format:check  # Prettier
-pnpm test:types    # vue-tsc for the module and the playground
+pnpm test:types    # vue-tsc for the module, the playground and the devtools client
 pnpm test          # Vitest: unit, nuxt and e2e projects
-pnpm prepack       # build the module
+pnpm prepack       # build the module and the devtools client
 ```
 
 The playground has a page per scenario: `/simple`, `/nested`, `/repeater` and `/validate-on`.
+
+To work on the devtools tab, run `pnpm client:dev` and `pnpm dev` side by side. The stubbed module proxies the tab's route to the client dev server; the published build serves `dist/client` instead.
 
 ## License
 
