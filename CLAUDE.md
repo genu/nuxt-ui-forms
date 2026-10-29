@@ -83,6 +83,7 @@ pnpm test:types    # vue-tsc: module, playground, client
 pnpm test          # vitest run (all projects)
 pnpm vitest run --project unit|nuxt|e2e
 pnpm prepack       # module build + client build
+pnpm check:prod    # after prepack: dist/client exists and a production playground build has no devtools code
 ```
 
 ## Tests

@@ -27,6 +27,7 @@
     "prepack": "nuxt-module-build build && pnpm client:build",
     "dev": "pnpm dev:prepare && nuxi dev playground",
     "dev:build": "nuxi build playground",
+    "check:prod": "node scripts/check-prod.mjs",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground && nuxi prepare client",
     "client:build": "nuxi generate client",
     "client:dev": "nuxi dev client --port 3300",

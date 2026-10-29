@@ -62,6 +62,9 @@ jobs:
       - name: Build
         run: pnpm prepack
 
+      - name: Check production build
+        run: pnpm check:prod
+
       - name: Publish to npm with provenance
         run: npm publish --provenance --access public
         env:

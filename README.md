@@ -246,6 +246,7 @@ pnpm format:check  # Prettier
 pnpm test:types    # vue-tsc for the module, the playground and the devtools client
 pnpm test          # Vitest: unit, nuxt and e2e projects
 pnpm prepack       # build the module and the devtools client
+pnpm check:prod    # after prepack: dist/client exists and a production playground build has no devtools code
 ```
 
 The playground has a page per scenario: `/simple`, `/nested`, `/repeater` and `/validate-on`.
