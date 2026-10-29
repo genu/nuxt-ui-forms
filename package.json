@@ -54,6 +54,7 @@
     "sirv": "3.0.2"
   },
   "devDependencies": {
+    "@formisch/vue": "1.1.1",
     "@formwerk/core": "0.14.4",
     "@iconify-json/lucide": "1.2.149",
     "@nuxt/devtools": "4.0.0",
@@ -72,6 +73,7 @@
     "prettier": "3.8.1",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
+    "valibot": "1.5.0",
     "vitest": "4.1.12",
     "vue": "3.5.44",
     "vue-tsc": "3.2.4",

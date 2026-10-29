@@ -1,7 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { defineComponent, h, ref, type Component } from "vue"
 import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils"
-import type { ArrayHandle, FieldEventType, FieldHandle, FieldOptions, FormAdapter, FormHandle, UseFormOptions } from "../../../src/runtime/core/types"
+import type {
+  ArrayHandle,
+  FieldEventType,
+  FieldHandle,
+  FieldOptions,
+  FormAdapter,
+  FormHandle,
+  UseFormOptions,
+} from "../../../src/runtime/core/types"
 
 export interface AdapterKit {
   adapter: FormAdapter
@@ -22,26 +30,37 @@ const field = (name: string, extra: Partial<FieldOptions> = {}): FieldOptions =>
 export const runAdapterContract = (name: string, kit: AdapterKit) => {
   const { adapter } = kit
 
-  const mountInHost = <T>(setup: () => T, opts?: HostOptions): T => {
+  // Fields are always descendants of the component that calls useForm (UForm), never the same component.
+  const formRoot = (child: Component, onForm: (form: FormHandle) => void) =>
+    defineComponent({
+      setup() {
+        onForm(adapter.useForm(kit.formOptions()))
+        return () => h(child)
+      },
+    })
+
+  const mountInForm = <T>(setup: () => T, opts?: HostOptions) => {
     let result!: T
+    let form!: FormHandle
     const child = defineComponent({
       setup() {
         result = setup()
         return () => null
       },
     })
-    mount(kit.host(child, opts))
-    return result
+    mount(
+      kit.host(
+        formRoot(child, (handle) => (form = handle)),
+        opts,
+      ),
+    )
+    return { form, result }
   }
 
-  const mountFields = (opts?: HostOptions, ...options: FieldOptions[]) =>
-    mountInHost(
-      () => ({
-        form: adapter.useForm(kit.formOptions()),
-        fields: options.map((option) => adapter.useField(option)),
-      }),
-      opts,
-    )
+  const mountFields = (opts?: HostOptions, ...options: FieldOptions[]) => {
+    const { form, result: fields } = mountInForm(() => options.map((option) => adapter.useField(option)), opts)
+    return { form, fields }
+  }
 
   const settleValidation = async () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
@@ -246,7 +265,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       const {
         form,
         fields: [email],
-      } = mountFields(undefined, field("email"))
+      } = mountFields({ initialValues: { email: "seed@b.co" } }, field("email"))
       await flushPromises()
 
       expect(typeof form.snapshot === "function").toBe(kit.providesSnapshot ?? false)
@@ -268,7 +287,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
     })
 
     it("array add/remove/move/swap/insert change items and keep keys stable for untouched rows", async () => {
-      const contacts = mountInHost(() => adapter.useArray({ name: "contacts", fullName: () => "contacts" }), {
+      const { result: contacts } = mountInForm(() => adapter.useArray({ name: "contacts", fullName: () => "contacts" }), {
         initialValues: { contacts: [{ email: "a" }, { email: "b" }] },
       })
       await flushPromises()
@@ -326,7 +345,6 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
 
       const Contacts = defineComponent({
         setup() {
-          form = adapter.useForm(kit.formOptions())
           if (group) adapter.useGroup({ name: group })
           array = adapter.useArray({ name: "contacts", fullName: () => arrayPath })
           const { items, Iteration } = array
@@ -335,7 +353,12 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       })
 
       const initialValues = group ? { email: "root@b.co", [group]: { contacts } } : { email: "root@b.co", contacts }
-      mount(kit.host(Contacts, { initialValues }))
+      mount(
+        kit.host(
+          formRoot(Contacts, (handle) => (form = handle)),
+          { initialValues },
+        ),
+      )
 
       return { rows, form, array }
     }
@@ -414,13 +437,17 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
 
       const Address = defineComponent({
         setup() {
-          form = adapter.useForm(kit.formOptions())
           adapter.useGroup({ name: "address" })
           return () => h(Street)
         },
       })
 
-      mount(kit.host(Address, { initialValues: { email: "a@b.co" } }))
+      mount(
+        kit.host(
+          formRoot(Address, (handle) => (form = handle)),
+          { initialValues: { email: "a@b.co" } },
+        ),
+      )
       await flushPromises()
 
       street.setValue("Main St")
