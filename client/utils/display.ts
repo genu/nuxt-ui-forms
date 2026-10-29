@@ -24,3 +24,7 @@ export const fieldFlags = ({ touched, blurred, dirty }: FieldSnapshot): StateFla
 export const compactJson = (value: unknown) => (value === "[undefined]" ? "undefined" : JSON.stringify(value))
 
 export const prettyJson = (value: unknown) => JSON.stringify(value, null, 2)
+
+export const fieldErrors = ({ path, error }: FieldSnapshot, formErrors: FormSnapshot["errors"]): string[] => [
+  ...new Set([...(error === undefined ? [] : [error]), ...(formErrors[path] ?? [])]),
+]

@@ -1,15 +1,17 @@
 <script lang="ts">
+  import type { FormSnapshot } from "../../src/runtime/devtools/snapshot"
   import type { FieldTreeNode } from "~/utils/field-tree"
 
   interface Props {
     nodes: FieldTreeNode[]
+    errors: FormSnapshot["errors"]
   }
 
   const label = (key: string) => (/^\d+$/.test(key) ? `[${key}]` : key)
 </script>
 
 <script setup lang="ts">
-  const { nodes } = defineProps<Props>()
+  const { nodes, errors } = defineProps<Props>()
 </script>
 
 <template>
@@ -21,10 +23,10 @@
         <template v-if="node.field">
           <code class="max-w-md truncate text-toned" :title="compactJson(node.field.value)">{{ compactJson(node.field.value) }}</code>
           <StateBadges :flags="fieldFlags(node.field)" class="ms-auto" />
+          <ErrorMarker :messages="fieldErrors(node.field, errors)" />
         </template>
       </div>
-      <p v-if="node.field?.error" class="px-2 pb-1 text-sm text-error" data-error>{{ node.field.error }}</p>
-      <FieldTree v-if="node.children.length" :nodes="node.children" class="ms-3 border-s border-default ps-3" />
+      <FieldTree v-if="node.children.length" :nodes="node.children" :errors="errors" class="ms-3 border-s border-default ps-3" />
     </li>
   </ul>
 </template>
