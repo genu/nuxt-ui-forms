@@ -39,7 +39,7 @@ client/                            # devtools tab SPA (Nuxt + Nuxt UI), built to
 ├── nuxt.config.ts                 # ssr: false, baseURL /__nuxt-ui-forms, colorMode and fonts off
 ├── composables/                   # useFormsHub (reads the host hub), useHostColorMode
 ├── utils/                         # field-tree.ts (buildFieldTree), display.ts (badges, JSON, fieldErrors), clipboard.ts (copyText with execCommand fallback)
-├── components/                    # FormList, FormDetail, FieldTree, StateBadges, ErrorMarker (hover/focus popover)
+├── components/                    # FormList, FormDetail, FieldTree, StateBadges, StateIcons (compact form-list indicators), ErrorMarker (hover/focus popover)
 └── pages/index.vue
 ```
 
@@ -60,7 +60,7 @@ A read-only "Forms" tab in Nuxt DevTools, in layers that each know only the one 
 - **Hub** (`runtime/devtools/hub.ts`, `plugin.ts`): `$formsDevtools` on the Nuxt app with `list()` (fresh snapshots) and `subscribe(cb)` (throttled trailing notify). While `subscriberCount` is 0 the form watcher does no work (no `snapshot()`, no deep traversal). `Form.vue` registers under `import.meta.env.DEV` via `useFormDevtools` (unique ids `id`, `id-2`, ...), so production builds drop it. The module adds the plugin and the tab only when `shouldSetupDevtools` (`src/devtools.ts`: `forms.devtools`, default `true`, and `nuxt.options.dev`) holds.
 - **Tab** (`src/devtools.ts` + `client/`): `onDevtoolsReady` registers an iframe dock entry in the Nuxt group pointing at `/__nuxt-ui-forms`. Nothing is mounted when Nuxt DevTools are disabled (`devtools: false` or `{ enabled: false }`). A built `dist/client` is served with `sirv`; the stub build (no `src/client`) proxies to `pnpm client:dev` on port 3300. The client reads `window.parent.__NUXT_DEVTOOLS_HOST__.nuxt.$formsDevtools` and, on every `subscribe` callback, copies `list()` into a local ref as plain data (the iframe has its own Vue instance; never keep host refs). Type imports from `src/runtime/devtools` are fine in the client; runtime imports of module files are not.
 - DevTools v4 only (`@nuxt/devtools-kit` 4): no `addCustomTab` or other v3 shims. The consumer must install `@nuxt/devtools@4` themselves; Nuxt 4.6 still bundles v3, where `devtools:ready` never fires, so no tab is registered and nothing breaks.
-- The client uses `@nuxt/ui` + Tailwind, not `@nuxt/devtools-ui-kit`: the ui-kit is deprecated upstream and installing it hangs pnpm. Color mode follows the host page's `dark`/`light` class, else the system preference (`@nuxtjs/color-mode` is off so the iframe never writes the host's shared localStorage). Avoid icon components (no icon collection is bundled).
+- The client uses `@nuxt/ui` + Tailwind, not `@nuxt/devtools-ui-kit`: the ui-kit is deprecated upstream and installing it hangs pnpm. Color mode follows the host page's `dark`/`light` class, else the system preference (`@nuxtjs/color-mode` is off so the iframe never writes the host's shared localStorage). Icons are Lucide (`i-lucide-*` through `UIcon`): `@iconify-json/lucide` is a devDependency and `icon.clientBundle.scan` bundles the used icons into `dist/client` at build, with `fallbackToApi: false` so the tab never calls the Iconify API. Use literal `i-lucide-*` class names so the scan finds them; restart `pnpm client:dev` after changing the `icon` config.
 - DevTools v4 asks for a one-time auth code printed in the `nuxi dev` terminal; browser scripts must read it from the dev log.
 
 ## Known limitation

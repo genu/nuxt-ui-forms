@@ -31,7 +31,6 @@
   <div class="flex flex-col gap-4 p-4">
     <header class="flex flex-wrap items-center gap-3">
       <h2 class="font-mono text-lg font-semibold text-highlighted">{{ form.id }}</h2>
-      <UBadge :label="form.adapter" color="neutral" variant="subtle" />
       <StateBadges :flags="formFlags(form.state)" />
     </header>
 

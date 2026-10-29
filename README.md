@@ -215,7 +215,7 @@ Each row must be rendered through the `Iteration` component, which scopes the ro
 
 In development the module adds a read-only **Forms** tab to [Nuxt DevTools](https://devtools.nuxt.com/) (under the Nuxt group of the dock). It lists every mounted `UForm` and updates live while you use the app:
 
-- Per form: id, adapter, and badges for submit attempted, plus valid, dirty and submitting when the adapter reports them (Formwerk does).
+- The adapter name once in the list header, and per form one line: the id plus compact indicators (hover for the name) for the active states: invalid or valid, submit attempted, dirty, submitting. The detail view shows all of them as badges.
 - A field tree built from the full field names (`address.city`, `contacts.0.email`), with each field's value, touched, blurred and dirty badges, and an error marker that shows the field's errors on hover or focus.
 - The form values as JSON (with a Copy button) and the list of form errors.
 

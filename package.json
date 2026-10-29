@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@formwerk/core": "0.14.4",
+    "@iconify-json/lucide": "1.2.149",
     "@nuxt/devtools": "4.0.0",
     "@nuxt/eslint-config": "1.15.1",
     "@nuxt/module-builder": "1.0.2",

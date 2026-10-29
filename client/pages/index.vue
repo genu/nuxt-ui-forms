@@ -24,7 +24,10 @@
 
     <template v-else>
       <aside class="w-72 shrink-0 overflow-y-auto border-e border-default" data-state="forms">
-        <h1 class="px-4 pt-4 text-xs font-semibold tracking-wide text-muted uppercase">Forms ({{ forms.length }})</h1>
+        <div class="flex items-center justify-between gap-2 px-4 pt-4">
+          <h1 class="text-xs font-semibold tracking-wide text-muted uppercase">Forms ({{ forms.length }})</h1>
+          <UBadge :label="forms[0]?.adapter" color="neutral" variant="subtle" size="sm" data-adapter />
+        </div>
         <FormList :forms="forms" :selected-id="selected?.id" @select="select" />
       </aside>
       <section class="min-w-0 flex-1 overflow-y-auto">

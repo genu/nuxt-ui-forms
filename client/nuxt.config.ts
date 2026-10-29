@@ -10,6 +10,10 @@ export default defineNuxtConfig({
     fonts: false,
     colorMode: false,
   },
+  icon: {
+    fallbackToApi: false,
+    clientBundle: { scan: true },
+  },
   app: {
     baseURL: "/__nuxt-ui-forms",
   },
