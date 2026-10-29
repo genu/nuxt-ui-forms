@@ -1,10 +1,12 @@
 import { defineNuxtModule, addComponent, createResolver } from "@nuxt/kit"
 import { resolveAdapter } from "./adapters"
+import { setupDevToolsUI } from "./devtools"
 
 export type * from "./runtime/types"
 
 export interface ModuleOptions {
   adapter: "formwerk"
+  devtools: boolean
 }
 
 const isResolvable = (id: string) => {
@@ -23,6 +25,7 @@ export default defineNuxtModule<ModuleOptions>({
   },
   defaults: {
     adapter: "formwerk",
+    devtools: true,
   },
   moduleDependencies: {
     "@nuxt/ui": {},
@@ -79,5 +82,7 @@ export default defineNuxtModule<ModuleOptions>({
         filePath: resolver.resolve(`./runtime/components/${file}.vue`),
       })
     }
+
+    if (options.devtools) setupDevToolsUI(nuxt, resolver)
   },
 })
