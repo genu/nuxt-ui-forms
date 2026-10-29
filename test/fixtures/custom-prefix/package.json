@@ -1,0 +1,5 @@
+{
+  "name": "custom-prefix",
+  "private": true,
+  "type": "module"
+}
