@@ -28,6 +28,14 @@ const fieldStoreExists = (store: FormStore, path: Path) => {
   }
 }
 
+const assertPath = (store: FormStore, kind: "field" | "repeater", fullName: string) => {
+  if (!fieldStoreExists(store, toPath(fullName))) {
+    throw new Error(
+      `nuxt-ui-forms: ${kind} "${fullName}" is not in the Formisch form's schema, or points at an array item that does not exist.`,
+    )
+  }
+}
+
 const useForm = ({ form }: UseFormOptions): FormHandle => {
   if (!isFormStore(form)) {
     throw new Error('nuxt-ui-forms: no Formisch form found. Pass the store from useForm() in @formisch/vue to <UForm :form="form">.')
@@ -76,11 +84,7 @@ const useField = ({ fullName }: FieldOptions): FieldHandle => {
 
   const path = computed(() => toPath(fullName()))
 
-  try {
-    getFieldStore(store[INTERNAL], path.value)
-  } catch {
-    throw new Error(`nuxt-ui-forms: field "${fullName()}" is not in the Formisch form's schema.`)
-  }
+  assertPath(store, "field", fullName())
 
   const field = useFormischField(store, () => ({ path: path.value as never }))
   const exists = computed(() => fieldStoreExists(store, path.value))
@@ -128,6 +132,8 @@ const Iteration = defineComponent({
 const useArray = ({ fullName, min, max }: ArrayOptions): ArrayHandle => {
   const store = inject(storeKey, undefined)
   if (!store) throw new Error("nuxt-ui-forms: UFormRepeater must be rendered inside a UForm.")
+
+  assertPath(store, "repeater", fullName())
 
   const path = computed(() => toPath(fullName()))
   const array = useFieldArray(store, () => ({ path: path.value as never }))

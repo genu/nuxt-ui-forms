@@ -128,6 +128,10 @@ Create the store with Formisch's `useForm` and pass it to `UForm` with the `form
       <UInput v-bind="model" />
     </UFormField>
 
+    <UFormField v-slot="{ model }" name="acceptTerms">
+      <UCheckbox v-bind="model" label="I accept the terms" />
+    </UFormField>
+
     <UFormGroup name="address">
       <UFormField v-slot="{ model }" name="city" label="City">
         <UInput v-bind="model" />
@@ -143,11 +147,12 @@ Formisch decides when errors are computed (`validate` and `revalidate` on its `u
 
 How it differs from Formwerk:
 
-- The Valibot schema must declare every field you render. A `UFormField` whose full name is not in the schema throws `nuxt-ui-forms: field "<name>" is not in the Formisch form's schema.`
+- The Valibot schema must declare every field you render. A `UFormField` or `UFormRepeater` whose full name is not in the schema, or points at an array item that does not exist, throws a `nuxt-ui-forms:` error naming it.
 - Valibot is the only schema library.
 - `disabled` disables the Nuxt UI inputs but does not remove fields from the submitted data or from validation.
 - An error thrown by the `@submit` handler is caught by Formisch and stored as a form-level error (shown in the devtools tab), not rethrown.
 - Repeater rows keep their blurred and touched state through `remove` and `insert`.
+- `UFormRepeater`'s `min` only guards `remove`. It does not add rows to an initial array shorter than `min` (Formwerk renders the extra rows); put enough rows in `initialInput`.
 
 ### `UForm`
 

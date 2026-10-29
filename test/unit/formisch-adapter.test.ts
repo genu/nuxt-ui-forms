@@ -89,6 +89,40 @@ describe("formisch adapter", () => {
     expect((error as Error).message).toContain("schema")
   })
 
+  it("useField throws a clear error for an array item that does not exist", () => {
+    let error: unknown
+    mountInForm(
+      () => {
+        try {
+          adapter.useField({ name: "email", fullName: () => "contacts.5.email" })
+        } catch (e) {
+          error = e
+        }
+      },
+      { email: "a@b.co", contacts: [{ email: "a" }] },
+    )
+
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toContain("nuxt-ui-forms")
+    expect((error as Error).message).toContain('"contacts.5.email"')
+  })
+
+  it("useArray throws a clear error for a name missing from the schema", () => {
+    let error: unknown
+    mountInForm(() => {
+      try {
+        adapter.useArray({ name: "nope", fullName: () => "nope" })
+      } catch (e) {
+        error = e
+      }
+    })
+
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toContain("nuxt-ui-forms")
+    expect((error as Error).message).toContain('"nope"')
+    expect((error as Error).message).toContain("schema")
+  })
+
   it("a row handle stays readable after its row is removed", async () => {
     let row!: FieldHandle
     const { result: array } = mountInForm(
