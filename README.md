@@ -221,8 +221,9 @@ In development the module adds a read-only **Forms** tab to [Nuxt DevTools](http
 
 The tab only reads state: it does not edit values or trigger submit or reset.
 
-- Requires Nuxt DevTools v4 (Nuxt >= 4.5). With DevTools v3 the tab is not registered.
+- Requires `@nuxt/devtools@4`, installed by your app (`pnpm add -D @nuxt/devtools@4`). Nuxt 4.6 still bundles DevTools v3; with v3 the tab is not registered and nothing breaks.
 - Development only. Nothing from it is included in production builds.
+- Form values, passwords included, are shown unmasked in the tab. It only exists in development and only on your machine.
 - DevTools v4 asks for a one-time authorization code the first time you open it in a browser. The code is printed in the terminal running `nuxi dev`.
 - To turn the tab off, set `forms: { devtools: false }`.
 
