@@ -1,18 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { defineComponent, h, ref, type Component } from "vue"
 import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils"
-import type { ArrayHandle, FieldEventType, FieldHandle, FieldOptions, FormAdapter, FormHandle } from "../../../src/runtime/core/types"
+import type { ArrayHandle, FieldEventType, FieldHandle, FieldOptions, FormAdapter, FormHandle, UseFormOptions } from "../../../src/runtime/core/types"
 
 export interface AdapterKit {
   adapter: FormAdapter
   host: (child: Component, opts?: { initialValues?: Record<string, unknown> }) => Component
+  /** Called inside a component mounted under `host`, so it may inject what the host provides. */
+  formOptions: () => UseFormOptions
   /** Declares that `FormHandle.snapshot` is implemented, so the contract fails if it goes missing. */
   providesSnapshot?: boolean
+  capabilities: {
+    disabledExcludesData: boolean
+  }
 }
 
 type HostOptions = Parameters<AdapterKit["host"]>[1]
 
-const field = (name: string, extra: Partial<FieldOptions> = {}): FieldOptions => ({ name, fullName: name, ...extra })
+const field = (name: string, extra: Partial<FieldOptions> = {}): FieldOptions => ({ name, fullName: () => name, ...extra })
 
 export const runAdapterContract = (name: string, kit: AdapterKit) => {
   const { adapter } = kit
@@ -32,7 +37,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
   const mountFields = (opts?: HostOptions, ...options: FieldOptions[]) =>
     mountInHost(
       () => ({
-        form: adapter.useForm(),
+        form: adapter.useForm(kit.formOptions()),
         fields: options.map((option) => adapter.useField(option)),
       }),
       opts,
@@ -60,7 +65,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
         defineComponent({
           setup() {
             try {
-              adapter.useForm()
+              adapter.useForm({})
             } catch (e) {
               error = e
             }
@@ -72,6 +77,32 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       expect(error).toBeInstanceOf(Error)
       expect((error as Error).message).toContain("useForm()")
       warn.mockRestore()
+    })
+
+    it("useField without a form never errors", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+      const error = vi.spyOn(console, "error").mockImplementation(() => {})
+      let email!: FieldHandle
+      mount(
+        defineComponent({
+          setup() {
+            email = adapter.useField(field("email"))
+            return () => null
+          },
+        }),
+      )
+
+      email.setValue("x")
+      email.handleEvent("blur")
+      email.handleEvent("input")
+      await flushPromises()
+
+      expect(email.value.value).toBe("x")
+      expect(email.error.value).toBeUndefined()
+      expect(warn).not.toHaveBeenCalled()
+      expect(error).not.toHaveBeenCalled()
+      warn.mockRestore()
+      error.mockRestore()
     })
 
     it("setValue updates value and marks dirty", async () => {
@@ -161,7 +192,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       expect(form.submitAttempted.value).toBe(true)
     })
 
-    it("disabled field is excluded from submitted data", async () => {
+    it.runIf(kit.capabilities.disabledExcludesData)("disabled field is excluded from submitted data", async () => {
       const { form } = mountFields(
         { initialValues: { email: "a@b.co", nickname: "neo" } },
         field("email"),
@@ -174,7 +205,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       expect(handler).toHaveBeenCalledWith({ email: "a@b.co" })
     })
 
-    it("disabled follows a reactive getter", async () => {
+    it.runIf(kit.capabilities.disabledExcludesData)("disabled follows a reactive getter", async () => {
       const disabled = ref(true)
       const { form } = mountFields(
         { initialValues: { email: "a@b.co", nickname: "neo" } },
@@ -237,7 +268,7 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
     })
 
     it("array add/remove/move/swap/insert change items and keep keys stable for untouched rows", async () => {
-      const contacts = mountInHost(() => adapter.useArray({ name: "contacts", fullName: "contacts" }), {
+      const contacts = mountInHost(() => adapter.useArray({ name: "contacts", fullName: () => "contacts" }), {
         initialValues: { contacts: [{ email: "a" }, { email: "b" }] },
       })
       await flushPromises()
@@ -288,16 +319,16 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       const Row = defineComponent({
         props: { index: { type: Number, required: true } },
         setup(props) {
-          rows[props.index] = adapter.useField(field("email", { fullName: `${arrayPath}.${props.index}.email` }))
+          rows[props.index] = adapter.useField(field("email", { fullName: () => `${arrayPath}.${props.index}.email` }))
           return () => null
         },
       })
 
       const Contacts = defineComponent({
         setup() {
-          form = adapter.useForm()
+          form = adapter.useForm(kit.formOptions())
           if (group) adapter.useGroup({ name: group })
-          array = adapter.useArray({ name: "contacts", fullName: arrayPath })
+          array = adapter.useArray({ name: "contacts", fullName: () => arrayPath })
           const { items, Iteration } = array
           return () => items.value.map((key, index) => h(Iteration, { key, index }, { default: () => h(Row, { index }) }))
         },
@@ -376,14 +407,14 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
 
       const Street = defineComponent({
         setup() {
-          street = adapter.useField(field("street", { fullName: "address.street" }))
+          street = adapter.useField(field("street", { fullName: () => "address.street" }))
           return () => null
         },
       })
 
       const Address = defineComponent({
         setup() {
-          form = adapter.useForm()
+          form = adapter.useForm(kit.formOptions())
           adapter.useGroup({ name: "address" })
           return () => h(Street)
         },

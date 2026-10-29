@@ -47,8 +47,8 @@ const Twins = defineComponent({
 const spyOnFormSnapshot = () => {
   const snapshot = vi.fn()
   const useForm = adapter.useForm
-  vi.spyOn(adapter, "useForm").mockImplementation(() => {
-    const handle = useForm()
+  vi.spyOn(adapter, "useForm").mockImplementation((options) => {
+    const handle = useForm(options)
     snapshot.mockImplementation(handle.snapshot!)
     return { ...handle, snapshot }
   })
