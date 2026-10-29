@@ -33,6 +33,7 @@
     initialInput: { company: { employees: [{ name: "", role: "" }] } },
   })
   const values = computed(() => getInput(form))
+  const formProps = { id: "Nested Form", form }
   const toast = useToast()
   const submitted = ref<unknown>()
 
@@ -54,13 +55,7 @@
 
     <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
       <UCard>
-        <UForm
-          id="Nested Form"
-          v-slot="{ blurredFields, touchedFields, dirtyFields }"
-          :form="form"
-          class="space-y-6"
-          @submit="onSubmit"
->
+        <UForm v-slot="{ blurredFields, touchedFields, dirtyFields }" v-bind="formProps" class="space-y-6" @submit="onSubmit">
           <UFormField v-slot="{ model }" name="name" label="Full name">
             <UInput v-bind="model" class="w-full" />
           </UFormField>

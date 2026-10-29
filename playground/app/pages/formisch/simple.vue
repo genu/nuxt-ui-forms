@@ -16,6 +16,7 @@
 <script setup lang="ts">
   const form = useForm({ schema, initialInput: { newsletter: false } })
   const values = computed(() => getInput(form))
+  const formProps = { id: "Simple Form", form }
   const toast = useToast()
   const submitted = ref<unknown>()
 
@@ -44,13 +45,7 @@
 
     <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
       <UCard>
-        <UForm
-          id="Simple Form"
-          v-slot="{ blurredFields, touchedFields, dirtyFields }"
-          :form="form"
-          class="space-y-4"
-          @submit="onSubmit"
->
+        <UForm v-slot="{ blurredFields, touchedFields, dirtyFields }" v-bind="formProps" class="space-y-4" @submit="onSubmit">
           <div class="grid gap-4 sm:grid-cols-2">
             <UFormField v-slot="{ model }" name="name" label="Name" required>
               <UInput v-bind="model" class="w-full" />

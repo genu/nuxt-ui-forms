@@ -18,6 +18,7 @@
   const { validateOn, description } = defineProps<Props>()
 
   const form = useForm({ schema, validate: "initial" })
+  const formProps = { id: `validateOn ${validateOn} Form`, form, validateOn }
   const toast = useToast()
 
   const onSubmit = () => {
@@ -32,14 +33,7 @@
       <p class="mt-1 text-sm text-muted">{{ description }}</p>
     </template>
 
-    <UForm
-      :id="`validateOn ${validateOn} Form`"
-      v-slot="{ blurredFields, touchedFields, dirtyFields }"
-      :form="form"
-      :validate-on="validateOn"
-      class="space-y-4"
-      @submit="onSubmit"
->
+    <UForm v-slot="{ blurredFields, touchedFields, dirtyFields }" v-bind="formProps" class="space-y-4" @submit="onSubmit">
       <UFormField v-slot="{ model }" name="email" label="Email">
         <UInput v-bind="model" class="w-full" />
       </UFormField>

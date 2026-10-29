@@ -39,6 +39,7 @@
     },
   })
   const values = computed(() => getInput(form))
+  const formProps = { id: "Repeater Form", form }
   const toast = useToast()
   const submitted = ref<unknown>()
 
@@ -67,13 +68,7 @@
 
     <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
       <UCard>
-        <UForm
-          id="Repeater Form"
-          v-slot="{ blurredFields, touchedFields, dirtyFields }"
-          :form="form"
-          class="space-y-6"
-          @submit="onSubmit"
->
+        <UForm v-slot="{ blurredFields, touchedFields, dirtyFields }" v-bind="formProps" class="space-y-6" @submit="onSubmit">
           <section class="space-y-3">
             <h2 class="font-medium">Contacts</h2>
             <UFormRepeater name="contacts" :min="MIN_CONTACTS" :max="MAX_CONTACTS" :ui="contactsUi">

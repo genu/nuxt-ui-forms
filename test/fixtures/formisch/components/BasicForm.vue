@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { computed } from "vue"
   import { useForm } from "@formisch/vue"
   import * as v from "valibot"
   import type { ValidateOn } from "../../../../src/runtime/types"
@@ -21,19 +22,14 @@
   const { validateOn, disabled = false, showNickname = false, initialValues, onSubmitted } = defineProps<Props>()
 
   const form = useForm({ schema, initialInput: initialValues, validate: "initial" })
+  const formProps = computed(() => ({ form, validateOn, disabled }))
 
   const onSubmit = (event: { data: unknown }) => onSubmitted?.(event.data)
   const join = (names: ReadonlySet<string>) => [...names].sort().join(",")
 </script>
 
 <template>
-  <UForm
-    v-slot="{ blurredFields, touchedFields, dirtyFields }"
-    :form="form"
-    :validate-on="validateOn"
-    :disabled="disabled"
-    @submit="onSubmit"
->
+  <UForm v-slot="{ blurredFields, touchedFields, dirtyFields }" v-bind="formProps" @submit="onSubmit">
     <UFormField v-slot="{ model }" data-testid="email-field" name="email" label="Email">
       <UInput v-bind="model" data-testid="email-input" />
     </UFormField>

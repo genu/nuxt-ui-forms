@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { computed } from "vue"
   import { useForm } from "@formisch/vue"
   import * as v from "valibot"
   import { z } from "zod"
@@ -21,19 +22,13 @@
   const { validate, onSubmitted } = defineProps<Props>()
 
   const form = useForm({ schema, initialInput: { email: "a@b.co" }, validate: "initial" })
+  const nuxtUiProps = computed(() => ({ schema: nuxtUiSchema, state: {}, validate }))
 
   const onSubmit = (event: { data: unknown }) => onSubmitted?.(event.data)
 </script>
 
 <template>
-  <UForm
-data-testid="form"
-:form="form"
-:schema="nuxtUiSchema"
-:state="{}"
-:validate="validate"
-@submit="onSubmit"
->
+  <UForm data-testid="form" :form="form" v-bind="nuxtUiProps" @submit="onSubmit">
     <UFormField v-slot="{ model }" data-testid="email-field" name="email" label="Email" error="from attrs">
       <UInput v-bind="model" data-testid="email-input" />
     </UFormField>

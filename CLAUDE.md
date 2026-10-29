@@ -4,7 +4,7 @@ Guidance for working in this repository.
 
 ## Project
 
-`nuxt-ui-forms` is a Nuxt module that puts a form library behind Nuxt UI's form components. The library owns state, validation and errors; Nuxt UI only renders. Components never import a form library: they talk to a `FormAdapter`, and the module bundles the adapter chosen with `forms: { adapter: "formwerk" }` (default and only adapter today).
+`nuxt-ui-forms` is a Nuxt module that puts a form library behind Nuxt UI's form components. The library owns state, validation and errors; Nuxt UI only renders. Components never import a form library: they talk to a `FormAdapter`, and the module bundles the adapter chosen with `forms: { adapter: "formwerk" | "formisch" }` (default `formwerk`, one adapter per app).
 
 Alpha (0.x): change behaviour freely, no compatibility shims.
 
@@ -14,11 +14,13 @@ Alpha (0.x): change behaviour freely, no compatibility shims.
 src/
 ├── module.ts                      # setup: adapter selection, NuxtUi* rename, component registration, devtools gate
 ├── devtools.ts                    # dev only: serves the client at /__nuxt-ui-forms (sirv or proxy) and registers the "Forms" dock entry
-├── adapters/                      # build-time adapter definitions (peer to check, runtime entry, setup hook)
-│   ├── index.ts                   # registry + resolveAdapter
-│   └── formwerk.ts                # aliases @formwerk/core to one instance
+├── adapters/                      # build-time adapter definitions (peers to check, runtime entry, setup hook)
+│   ├── index.ts                   # registry, resolveAdapter, missingPeersError
+│   ├── formwerk.ts                # aliases @formwerk/core to one instance
+│   └── formisch.ts                # peers @formisch/vue + valibot, no setup
 └── runtime/
     ├── adapters/formwerk/index.ts # FormAdapter implementation on @formwerk/core
+    ├── adapters/formisch/         # FormAdapter on @formisch/vue (index.ts) + toPath (path.ts)
     ├── components/                # Form.vue, Field.vue, Group.vue, Repeater.vue (registered as <prefix>Form, FormField, FormGroup, FormRepeater)
     ├── core/                      # library-agnostic logic
     │   ├── types.ts               # FormAdapter, FormHandle, FieldHandle, ArrayHandle, ValidateOn
@@ -45,11 +47,12 @@ client/                            # devtools tab SPA (Nuxt + Nuxt UI), built to
 
 ## How it fits together
 
-- `module.ts` resolves the adapter, throws if its peer (`@formwerk/core`) is not installed, aliases `#nuxt-ui-forms/adapter` to the adapter's runtime entry, renames Nuxt UI's `<prefix>Form`/`<prefix>FormField` to `NuxtUiForm`/`NuxtUiFormField`, and registers our four components with the Nuxt UI prefix (`ui.prefix`, default `U`).
-- `UForm` calls `adapter.useForm()` (Formwerk: `useFormContext()`, so `useForm()` must run in an ancestor) and renders `NuxtUiForm` with `validate-on="[]"` and `validate-on-input-delay="0"` so Nuxt UI never validates. `onSubmit` is a function prop; `FormHandle.submit(handler)` calls it with validated data only and is awaited.
-- `UFormField` computes its full name from the name scope, calls `adapter.useField({ name, fullName, ... })`, subscribes to Nuxt UI's form bus filtered by full name and forwards `blur | focus | change | input` to `handleEvent`. The adapter decides what an event means. The shown error is `isErrorVisible(...) ? field.error : undefined`.
+- `module.ts` resolves the adapter, throws `missingPeersError` if any of its peers is not installed, aliases `#nuxt-ui-forms/adapter` to the adapter's runtime entry, renames Nuxt UI's `<prefix>Form`/`<prefix>FormField` to `NuxtUiForm`/`NuxtUiFormField`, and registers our four components with the Nuxt UI prefix (`ui.prefix`, default `U`).
+- `UForm` calls `adapter.useForm({ form })` with its `form` prop (Formwerk ignores it and uses `useFormContext()`, so `useForm()` must run in an ancestor; Formisch requires the store and `provide`s it under a private key for its own `useField`/`useArray`) and renders `NuxtUiForm` with `validate-on="[]"` and `validate-on-input-delay="0"` so Nuxt UI never validates. `onSubmit` is a function prop; `FormHandle.submit(handler)` calls it with validated data only and is awaited.
+- `UFormField` computes its full name from the name scope, calls `adapter.useField({ name, fullName, ... })` (`fullName` is a getter: Formisch rows keep their instance while their index changes), subscribes to Nuxt UI's form bus filtered by full name and forwards `blur | focus | change | input` to `handleEvent`. The adapter decides what an event means. The shown error is `isErrorVisible(...) ? field.error : undefined`.
 - `validateOn` (`blur | touched | dirty`) is an error-visibility gate, not validation timing. A submit attempt (`FormHandle.submitAttempted`) shows all errors.
-- `UFormGroup` calls `adapter.useGroup` and provides a name scope. `UFormRepeater` calls `adapter.useArray({ name, fullName, min, max })` and wraps the returned `Iteration` so each row provides `<fullName>.<index>` as scope. Formwerk's `useFormRepeater` ignores parent path prefixes, so the Formwerk adapter passes it `fullName`.
+- `UFormGroup` calls `adapter.useGroup` and provides a name scope. `UFormRepeater` calls `adapter.useArray({ name, fullName, min, max })` and wraps the returned `Iteration` so each row provides `<fullName>.<index>` as scope. Formwerk's `useFormRepeater` ignores parent path prefixes, so the Formwerk adapter passes it `fullName()`. Formisch has no groups or path context: its adapter only uses `fullName()`, converted to an array path by `toPath`, and `useGroup` is a no-op.
+- Formisch specifics: Formisch decides when errors exist (`validate`/`revalidate`, default `"submit"`); the adapter never overrides them. It has no blurred state, so the adapter keeps a per-field `blurred` ref, cleared when the field's touched goes false (reset). Every rendered field must exist in the Valibot schema. `disabled` does not exclude data. Without an injected store (field outside `UForm`), `useField` returns an inert handle.
 - Wrapper slot users must render `Iteration` with `<component :is="Iteration">`.
 
 ## Devtools
@@ -65,13 +68,14 @@ A read-only "Forms" tab in Nuxt DevTools, in layers that each know only the one 
 
 ## Known limitation
 
-Formwerk 0.14.4 rebuilds every repeater row key on `remove`/`insert`, so rows remount and lose blurred/touched state. Covered by an `it.fails` case in `test/nuxt/repeater.test.ts`; flip it to `it` when Formwerk fixes it.
+Formwerk 0.14.4 rebuilds every repeater row key on `remove`/`insert`, so rows remount and lose blurred/touched state. Covered by a case in `test/nuxt/repeater.test.ts` that is `it.fails` under Formwerk and `it` under Formisch; make it `it` for both when Formwerk fixes it.
 
 ## Commands
 
 ```bash
 pnpm dev:prepare   # stub build + types for module, playground and client (run after install)
-pnpm dev           # playground
+pnpm dev           # playground (Formwerk)
+pnpm dev:formisch  # playground on the Formisch adapter
 pnpm dev:build     # build playground
 pnpm client:dev    # devtools client dev server on :3300 (run alongside `pnpm dev` to work on the tab)
 pnpm client:build  # nuxi generate client -> dist/client
@@ -90,13 +94,13 @@ pnpm check:prod    # after prepack: dist/client exists and a production playgrou
 
 Vitest with three projects (`vitest.config.ts`):
 
-- `unit` (happy-dom): core helpers, devtools snapshot/hub/setup, the client's pure utils (`buildFieldTree`, `fieldErrors`, `copyText`; `client/utils/*` must stay free of Nuxt-only imports), and the adapter contract suite. `test/unit/contract/adapter-contract.ts` defines behaviour every adapter must pass; `test/unit/formwerk-adapter.test.ts` runs it for Formwerk. A new adapter gets its own runner file.
-- `nuxt` (`@nuxt/test-utils` runtime, fixture `test/fixtures/basic`): component behaviour through `mountSuspended`. Fixture components live in `test/fixtures/basic/components/`. Test-utils loads Nuxt with `dev: false`, so `vitest.config.ts` adds the devtools plugin through `overrides` for the hub tests.
-- `e2e` (SSR via `@nuxt/test-utils/e2e`): `basic` and `custom-prefix` fixtures.
+- `unit` (happy-dom): core helpers, devtools snapshot/hub/setup, the client's pure utils (`buildFieldTree`, `fieldErrors`, `copyText`; `client/utils/*` must stay free of Nuxt-only imports), and the adapter contract suite. `test/unit/contract/adapter-contract.ts` defines behaviour every adapter must pass; `test/unit/formwerk-adapter.test.ts` and `test/unit/formisch-adapter.test.ts` run it. A new adapter gets its own runner file. `AdapterKit.formOptions()` hands the library form to `useForm`, and `capabilities` (`disabledExcludesData`) gates cases for real library differences only. In the harness, fields live in a child of the component that calls `useForm`, as under `UForm`.
+- `nuxt` (fixture `test/fixtures/basic`, Formwerk) and `nuxt-formisch` (fixture `test/fixtures/formisch`): the same `test/nuxt/*.test.ts` files run against both through `mountSuspended`. Tests import fixture components from `#fixture/components/*` (a per-project `test.alias`); both fixtures keep the same component names, props and test ids. `adapterName` in `test/nuxt/helpers.ts` branches adapter-specific cases. `test/nuxt/formisch.test.ts` runs only in `nuxt-formisch`. Test-utils loads Nuxt with `dev: false`, so `vitest.config.ts` adds the devtools plugin through `overrides` for the hub tests.
+- `e2e` (SSR via `@nuxt/test-utils/e2e`): `basic`, `formisch` (both through `test/e2e/ssr-suite.ts`; one e2e `setup` per file) and `custom-prefix` fixtures.
 
 ## Playground
 
-`playground/app/pages/`: `simple`, `nested` (groups plus a repeater inside a group), `repeater` (default and `wrapper` slots, min/max), `validate-on` (three forms, one per gate, via `components/ValidateOnDemo.vue`). Pages import types from `nuxt-ui-forms`, which resolves through the package's own `exports` after `pnpm dev:prepare`, so the playground has no `package.json` of its own.
+`NUXT_UI_FORMS_ADAPTER` (`formwerk` default, `formisch` via `pnpm dev:formisch`) selects the adapter and `runtimeConfig.public.formsAdapter`. `playground/app/pages/<adapter>/`: `simple` (Formisch: its default modes), `nested` (groups plus a repeater inside a group), `repeater` (default and `wrapper` slots, min/max), `validate-on` (three forms, one per gate, via `components/<adapter>/ValidateOnDemo.vue`). Navigation links to the active adapter's pages. Pages import types from `nuxt-ui-forms`, which resolves through the package's own `exports` after `pnpm dev:prepare`, so the playground has no `package.json` of its own.
 
 ## Conventions
 
