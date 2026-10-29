@@ -4,11 +4,11 @@ import type { VueWrapper } from "@vue/test-utils"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
 import { useNuxtApp } from "#app"
 import { adapter } from "#nuxt-ui-forms/adapter"
-import BasicForm from "../fixtures/basic/components/BasicForm.vue"
-import FileForm from "../fixtures/basic/components/FileForm.vue"
+import BasicForm from "#fixture/components/BasicForm.vue"
+import FileForm from "#fixture/components/FileForm.vue"
 import type { FormsHub } from "../../src/runtime/devtools/hub"
 import type { FormSnapshot } from "../../src/runtime/devtools/snapshot"
-import { interact, settle } from "./helpers"
+import { adapterName, interact, settle } from "./helpers"
 
 const hub = () => useNuxtApp().$formsDevtools as FormsHub
 
@@ -67,7 +67,7 @@ describe("forms devtools hub", () => {
     const snapshot = hub()
       .list()
       .find(({ id }) => id === "profile")
-    expect(snapshot).toMatchObject({ adapter: "formwerk", state: { submitAttempted: false } })
+    expect(snapshot).toMatchObject({ adapter: adapterName, state: { submitAttempted: false } })
     expect(snapshot!.fields.map(({ path }) => path)).toEqual(["email", "nickname"])
   })
 

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import type { VueWrapper } from "@vue/test-utils"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
-import GroupRepeaterForm from "../fixtures/basic/components/GroupRepeaterForm.vue"
-import RepeaterForm from "../fixtures/basic/components/RepeaterForm.vue"
-import { errorOf, interact, settle, textOf } from "./helpers"
+import GroupRepeaterForm from "#fixture/components/GroupRepeaterForm.vue"
+import RepeaterForm from "#fixture/components/RepeaterForm.vue"
+import { adapterName, errorOf, interact, settle, textOf } from "./helpers"
 
 const contacts = [
   { name: "alpha", email: "a@x.co" },
@@ -91,6 +91,7 @@ describe("UFormRepeater", () => {
   const interactWithRows = async () => {
     const wrapper = await mountRepeater()
     await interact(wrapper, "name-input-0", "alpha")
+    await wrapper.get('[data-testid="email-input-2"]').trigger("focus")
     await blur(wrapper, "email-input-2")
     return wrapper
   }
@@ -103,7 +104,8 @@ describe("UFormRepeater", () => {
   })
 
   // Formwerk 0.14.4 rebuilds every row key after remove/insert, so rows remount and lose their local blurred/touched state.
-  it.fails("removing a middle row keeps the other rows' error and touched state", async () => {
+  // Formisch keeps row ids, so its rows keep their state.
+  ;(adapterName === "formwerk" ? it.fails : it)("removing a middle row keeps the other rows' error and touched state", async () => {
     const wrapper = await interactWithRows()
 
     await click(wrapper, "remove-1")

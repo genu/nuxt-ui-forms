@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
-import BasicForm from "../fixtures/basic/components/BasicForm.vue"
-import FieldWithoutForm from "../fixtures/basic/components/FieldWithoutForm.vue"
-import GroupForm from "../fixtures/basic/components/GroupForm.vue"
+import BasicForm from "#fixture/components/BasicForm.vue"
+import FieldWithoutForm from "#fixture/components/FieldWithoutForm.vue"
+import GroupForm from "#fixture/components/GroupForm.vue"
 import { errorOf, settle, textOf } from "./helpers"
 
 describe("UFormField", () => {
