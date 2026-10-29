@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { defineComponent, h, inject, provide, type Component, type InjectionKey } from "vue"
 import { flushPromises, mount as baseMount, type VueWrapper } from "@vue/test-utils"
-import { useForm, type FormStore } from "@formisch/vue"
+import { reset, useForm, type FormStore } from "@formisch/vue"
 import * as v from "valibot"
 import { adapter } from "../../src/runtime/adapters/formisch"
 import type { FieldHandle, FormHandle } from "../../src/runtime/core/types"
@@ -105,6 +105,25 @@ describe("formisch adapter", () => {
 
     expect(() => [row.value.value, row.error.value, row.touched.value, row.dirty.value]).not.toThrow()
     expect(row.touched.value).toBe(false)
+  })
+
+  it("Formisch's own reset() clears blurred", async () => {
+    let store!: FormStore<typeof schema>
+    const { result: email } = mountInForm(() => {
+      store = inject(storeKey)!
+      return adapter.useField({ name: "email", fullName: () => "email" })
+    })
+    await flushPromises()
+
+    email.handleEvent("focus")
+    email.handleEvent("blur")
+    await flushPromises()
+    expect(email.blurred.value).toBe(true)
+
+    reset(store)
+    await flushPromises()
+
+    expect(email.blurred.value).toBe(false)
   })
 
   it("useForm rejects a value that is not a Formisch store", () => {

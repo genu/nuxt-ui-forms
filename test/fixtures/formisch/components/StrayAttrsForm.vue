@@ -26,7 +26,14 @@
 </script>
 
 <template>
-  <UForm data-testid="form" :form="form" :schema="nuxtUiSchema" :state="{}" :validate="validate" @submit="onSubmit">
+  <UForm
+data-testid="form"
+:form="form"
+:schema="nuxtUiSchema"
+:state="{}"
+:validate="validate"
+@submit="onSubmit"
+>
     <UFormField v-slot="{ model }" data-testid="email-field" name="email" label="Email" error="from attrs">
       <UInput v-bind="model" data-testid="email-input" />
     </UFormField>

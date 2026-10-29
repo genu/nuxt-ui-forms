@@ -32,7 +32,8 @@
     :form="form"
     :validate-on="validateOn"
     :disabled="disabled"
-    @submit="onSubmit">
+    @submit="onSubmit"
+>
     <UFormField v-slot="{ model }" data-testid="email-field" name="email" label="Email">
       <UInput v-bind="model" data-testid="email-input" />
     </UFormField>

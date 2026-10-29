@@ -1,4 +1,4 @@
-import { computed, defineComponent, h, inject, provide, ref, useId, watch, type InjectionKey, type PropType, type Ref } from "vue"
+import { computed, defineComponent, h, inject, provide, ref, useId, watch, type InjectionKey, type PropType } from "vue"
 import {
   getDeepErrorEntries,
   getInput,
@@ -16,12 +16,7 @@ import { getFieldStore, INTERNAL, type Path } from "@formisch/vue/internals"
 import type { ArrayHandle, ArrayOptions, FieldHandle, FieldOptions, FormAdapter, FormHandle, UseFormOptions } from "../../core/types"
 import { toPath } from "./path"
 
-interface FormischContext {
-  store: FormStore
-  resetCount: Ref<number>
-}
-
-const contextKey: InjectionKey<FormischContext> = Symbol("nuxt-ui-forms:formisch")
+const storeKey: InjectionKey<FormStore> = Symbol("nuxt-ui-forms:formisch")
 
 const isFormStore = (value: unknown): value is FormStore => typeof value === "object" && value !== null && INTERNAL in value
 
@@ -39,8 +34,7 @@ const useForm = ({ form }: UseFormOptions): FormHandle => {
   }
 
   const store = form
-  const resetCount = ref(0)
-  provide(contextKey, { store, resetCount })
+  provide(storeKey, store)
 
   return {
     id: useId(),
@@ -49,10 +43,7 @@ const useForm = ({ form }: UseFormOptions): FormHandle => {
       const submit = handleSubmit(store, (output) => handler(output))
       return () => submit()
     },
-    reset: () => {
-      reset(store)
-      resetCount.value++
-    },
+    reset: () => reset(store),
     snapshot: () => ({
       values: getInput(store),
       errors: Object.fromEntries(getDeepErrorEntries(store).map(({ path, errors }) => [path.join("."), [...errors]])),
@@ -80,10 +71,9 @@ const useDetachedField = (): FieldHandle => {
 }
 
 const useField = ({ fullName }: FieldOptions): FieldHandle => {
-  const context = inject(contextKey, undefined)
-  if (!context) return useDetachedField()
+  const store = inject(storeKey, undefined)
+  if (!store) return useDetachedField()
 
-  const { store, resetCount } = context
   const path = computed(() => toPath(fullName()))
 
   try {
@@ -94,8 +84,11 @@ const useField = ({ fullName }: FieldOptions): FieldHandle => {
 
   const field = useFormischField(store, () => ({ path: path.value as never }))
   const exists = computed(() => fieldStoreExists(store, path.value))
+  const touched = computed(() => exists.value && field.isTouched)
   const blurred = ref(false)
-  watch(resetCount, () => (blurred.value = false))
+  watch(touched, (isTouched) => {
+    if (!isTouched) blurred.value = false
+  })
 
   return {
     value: computed(() => (exists.value ? field.input : undefined)),
@@ -103,7 +96,7 @@ const useField = ({ fullName }: FieldOptions): FieldHandle => {
       if (exists.value) field.input = value as never
     },
     error: computed(() => (exists.value ? (field.errors?.[0] ?? undefined) : undefined)),
-    touched: computed(() => exists.value && field.isTouched),
+    touched,
     blurred,
     dirty: computed(() => exists.value && field.isDirty),
     handleEvent: (type) => {
@@ -133,10 +126,9 @@ const Iteration = defineComponent({
 })
 
 const useArray = ({ fullName, min, max }: ArrayOptions): ArrayHandle => {
-  const context = inject(contextKey, undefined)
-  if (!context) throw new Error("nuxt-ui-forms: UFormRepeater must be rendered inside a UForm.")
+  const store = inject(storeKey, undefined)
+  if (!store) throw new Error("nuxt-ui-forms: UFormRepeater must be rendered inside a UForm.")
 
-  const { store } = context
   const path = computed(() => toPath(fullName()))
   const array = useFieldArray(store, () => ({ path: path.value as never }))
   const items = computed(() => array.items)
