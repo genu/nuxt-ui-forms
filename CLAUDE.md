@@ -38,8 +38,8 @@ src/
 client/                            # devtools tab SPA (Nuxt + Nuxt UI), built to dist/client
 ├── nuxt.config.ts                 # ssr: false, baseURL /__nuxt-ui-forms, colorMode and fonts off
 ├── composables/                   # useFormsHub (reads the host hub), useHostColorMode
-├── utils/                         # field-tree.ts (buildFieldTree), display.ts (badges, JSON)
-├── components/                    # FormList, FormDetail, FieldTree, StateBadges
+├── utils/                         # field-tree.ts (buildFieldTree), display.ts (badges, JSON, fieldErrors), clipboard.ts (copyText with execCommand fallback)
+├── components/                    # FormList, FormDetail, FieldTree, StateBadges, ErrorMarker (hover/focus popover)
 └── pages/index.vue
 ```
 
@@ -90,7 +90,7 @@ pnpm check:prod    # after prepack: dist/client exists and a production playgrou
 
 Vitest with three projects (`vitest.config.ts`):
 
-- `unit` (happy-dom): core helpers, devtools snapshot/hub/setup, the client's `buildFieldTree` (`client/utils/field-tree.ts` must stay free of Nuxt-only imports), and the adapter contract suite. `test/unit/contract/adapter-contract.ts` defines behaviour every adapter must pass; `test/unit/formwerk-adapter.test.ts` runs it for Formwerk. A new adapter gets its own runner file.
+- `unit` (happy-dom): core helpers, devtools snapshot/hub/setup, the client's pure utils (`buildFieldTree`, `fieldErrors`, `copyText`; `client/utils/*` must stay free of Nuxt-only imports), and the adapter contract suite. `test/unit/contract/adapter-contract.ts` defines behaviour every adapter must pass; `test/unit/formwerk-adapter.test.ts` runs it for Formwerk. A new adapter gets its own runner file.
 - `nuxt` (`@nuxt/test-utils` runtime, fixture `test/fixtures/basic`): component behaviour through `mountSuspended`. Fixture components live in `test/fixtures/basic/components/`. Test-utils loads Nuxt with `dev: false`, so `vitest.config.ts` adds the devtools plugin through `overrides` for the hub tests.
 - `e2e` (SSR via `@nuxt/test-utils/e2e`): `basic` and `custom-prefix` fixtures.
 
