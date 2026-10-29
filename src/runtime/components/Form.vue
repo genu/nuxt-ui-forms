@@ -4,6 +4,7 @@
   import { provideFormRegistry } from "../core/form-registry"
   import { pickRootAttrs } from "../core/root-attrs"
   import { useAdapter } from "../core/use-adapter"
+  import { useFormDevtools } from "../devtools/use-form-devtools"
   import type { ValidateOn } from "../core/types"
 
   export interface FormProps {
@@ -34,8 +35,10 @@
     }
   }
 
-  const form = useAdapter().useForm()
-  const { blurredFields, touchedFields, dirtyFields } = provideFormRegistry()
+  const adapter = useAdapter()
+  const form = adapter.useForm()
+  const registry = provideFormRegistry()
+  const { blurredFields, touchedFields, dirtyFields } = registry
 
   provideFormContext({
     validateOn: () => validateOn,
@@ -43,7 +46,13 @@
     submitAttempted: form.submitAttempted,
   })
 
-  const nuxtUiFormProps = computed(() => ({ id: id ?? form.id, validateOn: [], validateOnInputDelay: 0, disabled }))
+  const formId = () => id ?? form.id
+  const nuxtUiFormProps = computed(() => ({ id: formId(), validateOn: [], validateOnInputDelay: 0, disabled }))
+
+  if (import.meta.env.DEV) {
+    useFormDevtools({ id: formId, adapter: adapter.name, form, registry })
+  }
+
   const submit = () => form.submit((data) => onSubmit?.({ data }))()
 </script>
 

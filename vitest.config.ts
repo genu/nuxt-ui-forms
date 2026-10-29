@@ -21,6 +21,9 @@ export default defineConfig({
             nuxt: {
               rootDir: fileURLToPath(new URL("./test/fixtures/basic", import.meta.url)),
               domEnvironment: "happy-dom",
+              overrides: {
+                plugins: [{ src: fileURLToPath(new URL("./src/runtime/devtools/plugin", import.meta.url)), mode: "client" }],
+              },
             },
           },
         },

@@ -1,4 +1,4 @@
-import { defineNuxtModule, addComponent, createResolver } from "@nuxt/kit"
+import { defineNuxtModule, addComponent, addPlugin, createResolver } from "@nuxt/kit"
 import { resolveAdapter } from "./adapters"
 import { setupDevToolsUI } from "./devtools"
 
@@ -83,6 +83,9 @@ export default defineNuxtModule<ModuleOptions>({
       })
     }
 
-    if (options.devtools) setupDevToolsUI(nuxt, resolver)
+    if (options.devtools && nuxt.options.dev) {
+      addPlugin({ src: resolver.resolve("./runtime/devtools/plugin"), mode: "client" })
+      setupDevToolsUI(nuxt, resolver)
+    }
   },
 })
