@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { defineComponent, h, ref } from "vue"
+import { computed, defineComponent, h, ref } from "vue"
 import { mount } from "@vue/test-utils"
 import { provideFormRegistry, useFormRegistry, type FormRegistry } from "../../src/runtime/core/form-registry"
 import type { FieldHandle } from "../../src/runtime/core/types"
@@ -46,6 +46,24 @@ describe("form registry", () => {
     unregister()
 
     expect(registry.blurredFields.value.has("email")).toBe(false)
+  })
+
+  it("exposes current registrations through entries()", () => {
+    const registry = mountRegistry()
+    const email = createHandle()
+    const name = createHandle()
+    const paths = computed(() => [...registry.entries().keys()])
+
+    const unregisterEmail = registry.register("email", email)
+    registry.register("name", name)
+
+    expect(paths.value).toEqual(["email", "name"])
+    expect(registry.entries().get("email")).toBe(email)
+
+    unregisterEmail()
+
+    expect(paths.value).toEqual(["name"])
+    expect(registry.entries().has("email")).toBe(false)
   })
 
   it("updates when a handle ref flips", () => {

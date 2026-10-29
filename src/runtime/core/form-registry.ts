@@ -3,6 +3,7 @@ import type { FieldHandle } from "./types"
 
 export interface FormRegistry {
   register(fullName: string, handle: FieldHandle): () => void
+  entries(): ReadonlyMap<string, FieldHandle>
   blurredFields: ComputedRef<ReadonlySet<string>>
   touchedFields: ComputedRef<ReadonlySet<string>>
   dirtyFields: ComputedRef<ReadonlySet<string>>
@@ -29,6 +30,7 @@ export const provideFormRegistry = (): FormRegistry => {
         if (handles.get(fullName) === handle) handles.delete(fullName)
       }
     },
+    entries: () => handles,
     blurredFields: namesWhere("blurred"),
     touchedFields: namesWhere("touched"),
     dirtyFields: namesWhere("dirty"),

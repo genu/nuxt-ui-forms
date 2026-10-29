@@ -16,6 +16,13 @@ const useForm = (): FormHandle => {
     reset: () => {
       void form.reset()
     },
+    snapshot: () => ({
+      values: form.values,
+      errors: Object.fromEntries(form.getIssues().map(({ path, messages }) => [path, [...messages]])),
+      valid: form.isValid(),
+      dirty: form.isDirty(),
+      submitting: form.isSubmitting.value,
+    }),
   }
 }
 

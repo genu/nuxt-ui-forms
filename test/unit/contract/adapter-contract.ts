@@ -6,6 +6,8 @@ import type { ArrayHandle, FieldEventType, FieldHandle, FieldOptions, FormAdapte
 export interface AdapterKit {
   adapter: FormAdapter
   host: (child: Component, opts?: { initialValues?: Record<string, unknown> }) => Component
+  /** Declares that `FormHandle.snapshot` is implemented, so the contract fails if it goes missing. */
+  providesSnapshot?: boolean
 }
 
 type HostOptions = Parameters<AdapterKit["host"]>[1]
@@ -207,6 +209,31 @@ export const runAdapterContract = (name: string, kit: AdapterKit) => {
       await flushPromises()
 
       expect([email!.touched.value, email!.blurred.value, email!.dirty.value]).toEqual([false, false, false])
+    })
+
+    it("snapshot, when provided, is consistent with the field handles", async () => {
+      const {
+        form,
+        fields: [email],
+      } = mountFields(undefined, field("email"))
+      await flushPromises()
+
+      expect(typeof form.snapshot === "function").toBe(kit.providesSnapshot ?? false)
+      if (!form.snapshot) return
+      const snapshot = form.snapshot.bind(form)
+
+      email!.setValue("a@b.co")
+      await settleValidation()
+
+      expect(email!.error.value).toBeUndefined()
+      expect(snapshot()).toMatchObject({ values: { email: "a@b.co" }, dirty: true, valid: true })
+      expect(snapshot().errors.email).toBeUndefined()
+
+      email!.setValue("")
+      await vi.waitFor(() => expect(email!.error.value).toBe("Required"))
+
+      expect(snapshot()).toMatchObject({ values: { email: "" }, dirty: true, valid: false })
+      expect(snapshot().errors.email).toEqual([email!.error.value])
     })
 
     it("array add/remove/move/swap/insert change items and keep keys stable for untouched rows", async () => {

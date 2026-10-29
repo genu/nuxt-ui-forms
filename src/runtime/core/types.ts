@@ -31,11 +31,21 @@ export interface FieldHandle {
   handleEvent(type: FieldEventType): void
 }
 
+export interface FormLevelSnapshot {
+  values: unknown
+  /** Messages keyed by dot-separated full path. */
+  errors: Record<string, string[]>
+  valid?: boolean
+  dirty?: boolean
+  submitting?: boolean
+}
+
 export interface FormHandle {
   id: string
   submitAttempted: Ref<boolean>
   submit(handler: (data: unknown) => void | Promise<void>): (event?: Event) => Promise<void>
   reset(): void
+  snapshot?(): FormLevelSnapshot
 }
 
 export interface ArrayHandle {
