@@ -1,3 +1,4 @@
+import { adapter } from "#nuxt-ui-forms/adapter"
 import { flushPromises, type VueWrapper } from "@vue/test-utils"
 
 export const settle = async () => {
@@ -19,3 +20,5 @@ export const interact = async (wrapper: VueWrapper, input: string, value: string
   await element.trigger("blur")
   await settle()
 }
+
+export const adapterName = adapter.name as "formwerk" | "formisch"

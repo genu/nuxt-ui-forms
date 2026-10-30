@@ -18,6 +18,9 @@ importers:
         specifier: 3.0.2
         version: 3.0.2
     devDependencies:
+      '@formisch/vue':
+        specifier: 1.1.1
+        version: 1.1.1(typescript@5.9.3)(valibot@1.5.0(typescript@5.9.3))(vue@3.5.44(typescript@5.9.3))
       '@formwerk/core':
         specifier: 0.14.4
         version: 0.14.4(vue@3.5.44(typescript@5.9.3))
@@ -41,7 +44,7 @@ importers:
         version: 4.0.0(@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.44)(@vue/server-renderer@3.5.44)(vue@3.5.44(typescript@5.9.3)))(crossws@0.4.17(srvx@1.0.8))(esbuild@0.28.2)(happy-dom@21.0.4)(magicast@0.5.5)(rolldown@1.2.15)(rollup@4.65.1)(typescript@5.9.3)(vite@8.3.5)(vitest@4.1.12(@types/node@26.6.5)(happy-dom@21.0.4)(vite@8.3.5))
       '@nuxt/ui':
         specifier: 4.12.0
-        version: 4.12.0(c21d0543f7ae393694fa6214bdff9980)
+        version: 4.12.0(6fbc4c886666bfc4736d187ac86a961d)
       '@types/node':
         specifier: 26.6.5
         version: 26.6.5
@@ -72,6 +75,9 @@ importers:
       typescript:
         specifier: 5.9.3
         version: 5.9.3
+      valibot:
+        specifier: 1.5.0
+        version: 1.5.0(typescript@5.9.3)
       vitest:
         specifier: 4.1.12
         version: 4.1.12(@types/node@26.6.5)(happy-dom@21.0.4)(vite@8.3.5)
@@ -981,6 +987,16 @@ packages:
     resolution: {integrity: sha512-043dyEKD9TDSfz080YH2vobubgg+NIo/9Fw4RAl7sEMpD8Am1DNrrSTl/GpMBjyGHoD/FbJY2QLawY+HSQsEIA==}
     peerDependencies:
       vue: '>=3.3.0'
+
+  '@formisch/vue@1.1.1':
+    resolution: {integrity: sha512-+PJg3lyeK4gY4aozd8zVVd6WszIhBSlTSTVRkcxbFwIHCNhShjWlA7t3x2H4ldJkrHSsxxoGwyepc0BrUNGV8w==}
+    peerDependencies:
+      typescript: '>=5 <8'
+      valibot: '>=1.4.1 <2'
+      vue: '>=3.3 <4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@formwerk/core@0.14.4':
     resolution: {integrity: sha512-f6CZOqgaS8kjJ7ggI9Ojbko0IA4j0hjWTNwP93aJ2RU7Muq2v3A2pwXEp8TIY0GohoxmcZpfVc7sho/ABLkM0A==}
@@ -5742,6 +5758,14 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  valibot@1.5.0:
+    resolution: {integrity: sha512-nil6AkP2TChWL43Z5uJ6GTxX01CUA+g8LWUM+N/rB9NBbkUMaUsi9PUNzlUPgoKASgmx9f7eGOYpJ04/fSa6FQ==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   vaul-vue@0.4.1:
     resolution: {integrity: sha512-A6jOWOZX5yvyo1qMn7IveoWN91mJI5L3BUKsIwkg6qrTGgHs1Sb1JF/vyLJgnbN1rH4OOOxFbtqL9A46bOyGUQ==}
     peerDependencies:
@@ -6818,6 +6842,13 @@ snapshots:
       '@floating-ui/utils': 0.2.12
       vue: 3.5.44(typescript@5.9.3)
 
+  '@formisch/vue@1.1.1(typescript@5.9.3)(valibot@1.5.0(typescript@5.9.3))(vue@3.5.44(typescript@5.9.3))':
+    dependencies:
+      valibot: 1.5.0(typescript@5.9.3)
+      vue: 3.5.44(typescript@5.9.3)
+    optionalDependencies:
+      typescript: 5.9.3
+
   '@formwerk/core@0.14.4(vue@3.5.44(typescript@5.9.3))':
     dependencies:
       '@formwerk/devtools': 0.14.4
@@ -7561,7 +7592,7 @@ snapshots:
       - vite
       - webpack
 
-  '@nuxt/ui@4.12.0(c21d0543f7ae393694fa6214bdff9980)':
+  '@nuxt/ui@4.12.0(6fbc4c886666bfc4736d187ac86a961d)':
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@iconify/vue': 5.0.4(vue@3.5.44(typescript@5.9.3))
@@ -7630,6 +7661,7 @@ snapshots:
     optionalDependencies:
       '@internationalized/date': 3.12.4
       '@internationalized/number': 3.6.9
+      valibot: 1.5.0(typescript@5.9.3)
       vue-router: 5.4.0(@vue/compiler-sfc@3.5.44)(esbuild@0.28.2)(rolldown@1.2.15)(rollup@4.65.1)(vite@8.3.5)(vue@3.5.44(typescript@5.9.3))
       zod: 4.6.7
     transitivePeerDependencies:
@@ -12254,6 +12286,10 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  valibot@1.5.0(typescript@5.9.3):
+    optionalDependencies:
+      typescript: 5.9.3
 
   vaul-vue@0.4.1(reka-ui@2.11.0(vue@3.5.44(typescript@5.9.3)))(vue@3.5.44(typescript@5.9.3)):
     dependencies:

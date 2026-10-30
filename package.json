@@ -26,6 +26,7 @@
   "scripts": {
     "prepack": "nuxt-module-build build && pnpm client:build",
     "dev": "pnpm dev:prepare && nuxi dev playground",
+    "dev:formisch": "pnpm dev:prepare && NUXT_UI_FORMS_ADAPTER=formisch nuxi dev playground",
     "dev:build": "nuxi build playground",
     "check:prod": "node scripts/check-prod.mjs",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground && nuxi prepare client",
@@ -40,11 +41,19 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit && cd ../client && vue-tsc --noEmit"
   },
   "peerDependencies": {
+    "@formisch/vue": "^1.1.1",
     "@formwerk/core": "^0.14.4",
-    "@nuxt/ui": "^4.12.0"
+    "@nuxt/ui": "^4.12.0",
+    "valibot": "^1.4.1"
   },
   "peerDependenciesMeta": {
+    "@formisch/vue": {
+      "optional": true
+    },
     "@formwerk/core": {
+      "optional": true
+    },
+    "valibot": {
       "optional": true
     }
   },
@@ -54,6 +63,7 @@
     "sirv": "3.0.2"
   },
   "devDependencies": {
+    "@formisch/vue": "1.1.1",
     "@formwerk/core": "0.14.4",
     "@iconify-json/lucide": "1.2.149",
     "@nuxt/devtools": "4.0.0",
@@ -72,6 +82,7 @@
     "prettier": "3.8.1",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
+    "valibot": "1.5.0",
     "vitest": "4.1.12",
     "vue": "3.5.44",
     "vue-tsc": "3.2.4",

@@ -3,11 +3,13 @@
 </script>
 
 <script setup lang="ts">
+  const { formsAdapter } = useRuntimeConfig().public
+
   const items: NavigationMenuItem[] = [
-    { label: "Simple", to: "/simple" },
-    { label: "Nested", to: "/nested" },
-    { label: "Repeater", to: "/repeater" },
-    { label: "validateOn", to: "/validate-on" },
+    { label: "Simple", to: `/${formsAdapter}/simple` },
+    { label: "Nested", to: `/${formsAdapter}/nested` },
+    { label: "Repeater", to: `/${formsAdapter}/repeater` },
+    { label: "validateOn", to: `/${formsAdapter}/validate-on` },
   ]
 </script>
 

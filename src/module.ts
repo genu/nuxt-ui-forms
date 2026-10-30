@@ -1,11 +1,11 @@
 import { defineNuxtModule, addComponent, addPlugin, createResolver } from "@nuxt/kit"
-import { resolveAdapter } from "./adapters"
+import { missingPeersError, resolveAdapter } from "./adapters"
 import { setupDevToolsUI, shouldSetupDevtools } from "./devtools"
 
 export type * from "./runtime/types"
 
 export interface ModuleOptions {
-  adapter: "formwerk"
+  adapter: "formwerk" | "formisch"
   devtools: boolean
 }
 
@@ -34,11 +34,8 @@ export default defineNuxtModule<ModuleOptions>({
     const resolver = createResolver(import.meta.url)
     const adapter = resolveAdapter(options.adapter)
 
-    if (!isResolvable(adapter.peer)) {
-      throw new Error(
-        `[nuxt-ui-forms] The "${adapter.name}" adapter requires "${adapter.peer}". Install it with: pnpm add ${adapter.peer}`,
-      )
-    }
+    const peersError = missingPeersError(adapter, isResolvable)
+    if (peersError) throw new Error(peersError)
 
     adapter.setup?.(nuxt)
 
