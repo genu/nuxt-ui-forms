@@ -4,7 +4,7 @@
   "description": "Library-agnostic form components for Nuxt UI with pluggable form engine adapters",
   "license": "MIT",
   "repository": "https://github.com/genu/nuxt-ui-forms.git",
-  "packageManager": "pnpm@10.29.2",
+  "packageManager": "pnpm@12.16.1",
   "files": [
     "dist"
   ],
