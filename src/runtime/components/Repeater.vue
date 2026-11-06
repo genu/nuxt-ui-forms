@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Component } from "vue"
-  import { resolveFullName } from "../core/name-scope"
+  import { computed, type Component } from "vue"
+  import { resolveFullName, useNameScope } from "../core/name-scope"
   import { createScopedIteration } from "../core/scoped-iteration"
   import { useAdapter } from "../core/use-adapter"
 
@@ -52,8 +52,9 @@
   const { name, min, max, ui } = defineProps<RepeaterProps>()
   defineSlots<RepeaterSlots>()
 
-  const fullName = resolveFullName(name)
-  const { Iteration: AdapterIteration, items, ...repeater } = useAdapter().useArray({ name, fullName, min, max })
+  const scope = useNameScope()
+  const fullName = computed(() => resolveFullName(name, scope))
+  const { Iteration: AdapterIteration, items, ...repeater } = useAdapter().useArray({ name, fullName: () => fullName.value, min, max })
   const Iteration = createScopedIteration(() => name, AdapterIteration)
 </script>
 

@@ -3,7 +3,7 @@ import type { AdapterDefinition } from "./index"
 
 export const formwerk: AdapterDefinition = {
   name: "formwerk",
-  peer: "@formwerk/core",
+  peers: ["@formwerk/core"],
   runtimeEntry: "runtime/adapters/formwerk/index",
   setup(nuxt) {
     // Prevent duplicate @formwerk/core instances which break context sharing between

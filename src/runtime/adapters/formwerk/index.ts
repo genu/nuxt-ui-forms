@@ -1,8 +1,8 @@
 import { computed } from "vue"
 import { useCustomControl, useFormContext, useFormField, useFormGroup, useFormRepeater } from "@formwerk/core"
-import type { ArrayHandle, ArrayOptions, FieldHandle, FieldOptions, FormAdapter, FormHandle } from "../../core/types"
+import type { ArrayHandle, ArrayOptions, FieldHandle, FieldOptions, FormAdapter, FormHandle, UseFormOptions } from "../../core/types"
 
-const useForm = (): FormHandle => {
+const useForm = (_options: UseFormOptions): FormHandle => {
   const form = useFormContext()
 
   if (!form) {
@@ -50,7 +50,7 @@ const useGroup = ({ name }: { name: string }) => {
 
 // useFormRepeater ignores parent path prefixes (groups, iterations), so it needs the absolute path.
 const useArray = ({ fullName, min, max }: ArrayOptions): ArrayHandle => {
-  const repeater = useFormRepeater({ name: fullName, min, max })
+  const repeater = useFormRepeater({ name: fullName(), min, max })
 
   return {
     items: repeater.items,

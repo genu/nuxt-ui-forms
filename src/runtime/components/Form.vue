@@ -11,6 +11,7 @@
     validateOn?: ValidateOn
     disabled?: boolean
     id?: string
+    form?: object
     onSubmit?: (event: { data: unknown }) => void | Promise<void>
   }
 
@@ -22,7 +23,7 @@
 </script>
 
 <script setup lang="ts">
-  const { validateOn = "blur", disabled = false, id, onSubmit } = defineProps<FormProps>()
+  const { validateOn = "blur", disabled = false, id, form: libraryForm, onSubmit } = defineProps<FormProps>()
   defineSlots<FormSlots>()
   defineOptions({ inheritAttrs: false })
 
@@ -36,7 +37,7 @@
   }
 
   const adapter = useAdapter()
-  const form = adapter.useForm()
+  const form = adapter.useForm({ form: libraryForm })
   const registry = provideFormRegistry()
   const { blurredFields, touchedFields, dirtyFields } = registry
 

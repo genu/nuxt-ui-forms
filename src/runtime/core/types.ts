@@ -6,8 +6,8 @@ export type ValidateOn = "blur" | "touched" | "dirty"
 export interface FieldOptions {
   /** Relative name; the library may prefix it through its own group or iteration context. */
   name: string
-  /** Absolute path, snapshotted at setup. */
-  fullName: string
+  /** Absolute path, reactive. */
+  fullName: () => string
   label?: string
   description?: string
   disabled?: MaybeRefOrGetter<boolean | undefined>
@@ -15,8 +15,8 @@ export interface FieldOptions {
 
 export interface ArrayOptions {
   name: string
-  /** Absolute path, snapshotted at setup. */
-  fullName: string
+  /** Absolute path, reactive. */
+  fullName: () => string
   min?: number
   max?: number
 }
@@ -59,9 +59,14 @@ export interface ArrayHandle {
   Iteration: Component
 }
 
+export interface UseFormOptions {
+  /** The library's form, passed through `UForm`'s `form` prop. */
+  form?: unknown
+}
+
 export interface FormAdapter {
   name: string
-  useForm(): FormHandle
+  useForm(options: UseFormOptions): FormHandle
   useField(options: FieldOptions): FieldHandle
   useGroup(options: { name: string }): void
   useArray(options: ArrayOptions): ArrayHandle

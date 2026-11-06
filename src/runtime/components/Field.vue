@@ -38,7 +38,7 @@
 
   const field = useAdapter().useField({
     name: resolveFieldName(props),
-    fullName: fullName.value,
+    fullName: () => fullName.value,
     label: props.label,
     description: props.description,
     disabled: form?.disabled,

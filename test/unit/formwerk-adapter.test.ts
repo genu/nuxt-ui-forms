@@ -11,7 +11,9 @@ const schema = z.looseObject({
 
 const kit: AdapterKit = {
   adapter,
+  formOptions: () => ({}),
   providesSnapshot: true,
+  capabilities: { disabledExcludesData: true },
   host: (child, opts) =>
     defineComponent({
       setup() {

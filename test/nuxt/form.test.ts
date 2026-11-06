@@ -3,10 +3,10 @@ import { defineComponent, h, onErrorCaptured, type ShallowUnwrapRef } from "vue"
 import type { Form } from "@nuxt/ui"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
 import { NuxtUiForm } from "#components"
-import BasicForm from "../fixtures/basic/components/BasicForm.vue"
-import FormWithoutUseForm from "../fixtures/basic/components/FormWithoutUseForm.vue"
+import BasicForm from "#fixture/components/BasicForm.vue"
+import FormWithoutUseForm from "#fixture/components/FormWithoutUseForm.vue"
 import type { FormProps } from "../../src/runtime/types"
-import { errorOf, interact, settle, textOf } from "./helpers"
+import { adapterName, errorOf, interact, settle, textOf } from "./helpers"
 
 const submit = async (wrapper: Awaited<ReturnType<typeof mountSuspended>>) => {
   await wrapper.get("form").trigger("submit")
@@ -51,7 +51,19 @@ describe("UForm", () => {
     expect(errorOf(wrapper, "email-field")).toBe("Invalid email")
   })
 
-  it("disabling the form disables the Nuxt UI input and excludes the field from submitted data", async () => {
+  it("disabling the form disables the Nuxt UI input", async () => {
+    const wrapper = await mountSuspended(BasicForm, { props: { disabled: true, initialValues: { email: "a@b.co" } } })
+    const emailInput = () => wrapper.get<HTMLInputElement>('[data-testid="email-input"]').element
+    await settle()
+
+    expect(emailInput().disabled).toBe(true)
+
+    await wrapper.setProps({ disabled: false })
+    await settle()
+    expect(emailInput().disabled).toBe(false)
+  })
+
+  it.runIf(adapterName === "formwerk")("disabling the form excludes the field from submitted data", async () => {
     const onSubmitted = vi.fn()
     const wrapper = await mountSuspended(BasicForm, {
       props: { disabled: true, showNickname: true, initialValues: { email: "a@b.co", nickname: "bob" }, onSubmitted },
@@ -128,7 +140,7 @@ describe("UForm", () => {
 
     expect(errors[0]).toBeInstanceOf(Error)
     expect((errors[0] as Error).message).toContain("useForm()")
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("useFormContext"))
+    if (adapterName === "formwerk") expect(warn).toHaveBeenCalledWith(expect.stringContaining("useFormContext"))
   })
 
   it("Nuxt UI schema/validateOn strategies never run", async () => {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
-import StrayAttrsForm from "../fixtures/basic/components/StrayAttrsForm.vue"
+import StrayAttrsForm from "#fixture/components/StrayAttrsForm.vue"
 import { errorOf, settle } from "./helpers"
 
 const mountStray = async (props: InstanceType<typeof StrayAttrsForm>["$props"] = {}) => {
